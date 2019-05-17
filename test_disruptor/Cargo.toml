@@ -1,0 +1,9 @@
+[package]
+name = "TestDisruptor"
+version = "0.1.0"
+authors = ["Jongwhan Lee <leejw51@gmail.com>"]
+
+[dependencies]
+multiqueue = ""
+time = "0.1.12"
+regex = "0.1.41"
