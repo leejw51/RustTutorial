@@ -3,14 +3,11 @@ fn qsort(a: &Vec<i32>) -> Vec<i32> {
         return vec![];
     }
 
-    let mut xs: Vec<i32> = vec![];
-    let x = a[0];
+    let (x0, xs) = a.split_at(1);
+    let x = x0[0];
     let mut smaller: Vec<i32> = vec![];
     let mut bigger: Vec<i32> = vec![];
-    for i in 1..a.len() {
-        xs.push(a[i]);
-    }
-    for &y in &xs {
+    for &y in xs {
         if y < x {
             smaller.push(y);
         } else {
