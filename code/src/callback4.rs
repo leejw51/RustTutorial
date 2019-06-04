@@ -1,27 +1,39 @@
-struct Processor<CB>
-where
-   CB: FnMut(u32) -> u32,
-{
-   callback: CB,
+use std::rc::Rc;
+struct App {}
+struct NetworkCore {
+   version: String,
+   app: Box<App>,
 }
 
-impl<CB> Processor<CB>
-where
-   CB: FnMut(u32) -> u32,
-{
-   fn set_callback(&mut self, c: CB) {
-      self.callback = c;
+trait NetworkCallback {
+   fn onRead(&mut self);
+}
+trait NetworkServer {
+   fn run(&mut self);
+   fn read(&mut self, buf: String);
+}
+impl NetworkServer for NetworkCore {
+   fn run(&mut self) {
+      println!("network server run");
    }
-
-   fn process_events(&mut self) {
-      let result = (self.callback)(200);
-      println!("result={}", result);
+   fn read(& mut self, buf: String) {
+      println!("read={}", buf);
+      self.app.onRead();
    }
 }
 
+
+impl NetworkCallback for App {
+   fn onRead(&mut self) {
+      println!("App onRead");
+   }
+}
 fn main() {
-   let s = "world!".to_string();
-   let callback = |a| a + 100;
-   let mut p = Processor { callback: callback };
-   p.process_events();
+   let mut app = Box::new(App {});
+   let mut core = Box::new(NetworkCore {
+      version: "1.0.0".to_string(),
+      app: app,
+   });
+   core.run();
+   core.read("apple ][".to_string());
 }
