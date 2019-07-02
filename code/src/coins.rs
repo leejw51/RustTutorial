@@ -2,12 +2,12 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Debug)]
 struct Coin {
-    value: u64,
+    secs: u64,
 }
 
 impl Coin {
     pub fn new(s: u64) -> Coin {
-        Coin { value: s }
+        Coin { secs: s }
     }
 }
 
@@ -21,9 +21,14 @@ impl<'de> Deserialize<'de> for Coin {
         D: Deserializer<'de>,
     {
         enum Field {
-            Value,
+            Secs,
         };
 
+        // This part could also be generated independently by:
+        //
+        //    #[derive(Deserialize)]
+        //    #[serde(field_identifier, rename_all = "lowercase")]
+        //    enum Field { Secs, Nanos }
         impl<'de> Deserialize<'de> for Field {
             fn deserialize<D>(deserializer: D) -> Result<Field, D::Error>
             where
@@ -35,7 +40,7 @@ impl<'de> Deserialize<'de> for Coin {
                     type Value = Field;
 
                     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                        formatter.write_str("`value`")
+                        formatter.write_str("`secs` or `nanos`")
                     }
 
                     fn visit_str<E>(self, value: &str) -> Result<Field, E>
@@ -43,7 +48,7 @@ impl<'de> Deserialize<'de> for Coin {
                         E: de::Error,
                     {
                         match value {
-                            "value" => Ok(Field::Value),
+                            "secs" => Ok(Field::Secs),
 
                             _ => Err(de::Error::unknown_field(value, FIELDS)),
                         }
@@ -67,35 +72,37 @@ impl<'de> Deserialize<'de> for Coin {
             where
                 V: SeqAccess<'de>,
             {
-                let value = seq
+                let secs = seq
                     .next_element()?
                     .ok_or_else(|| de::Error::invalid_length(0, &self))?;
-
-                Ok(Coin::new(value))
+                let nanos = seq
+                    .next_element()?
+                    .ok_or_else(|| de::Error::invalid_length(1, &self))?;
+                Ok(Coin::new(secs))
             }
 
             fn visit_map<V>(self, mut map: V) -> Result<Coin, V::Error>
             where
                 V: MapAccess<'de>,
             {
-                let mut value = None;
+                let mut secs = None;
 
                 while let Some(key) = map.next_key()? {
                     match key {
-                        Field::Value => {
-                            if value.is_some() {
-                                return Err(de::Error::duplicate_field("value"));
+                        Field::Secs => {
+                            if secs.is_some() {
+                                return Err(de::Error::duplicate_field("secs"));
                             }
-                            value = Some(map.next_value()?);
+                            secs = Some(map.next_value()?);
                         }
                     }
                 }
-                let value = value.ok_or_else(|| de::Error::missing_field("value"))?;
-                Ok(Coin::new(value))
+                let secs = secs.ok_or_else(|| de::Error::missing_field("secs"))?;
+                Ok(Coin::new(secs))
             }
         }
 
-        const FIELDS: &'static [&'static str] = &["value"];
+        const FIELDS: &'static [&'static str] = &["secs", "nanos"];
         deserializer.deserialize_struct("Coin", FIELDS, CoinVisitor)
     }
 }
