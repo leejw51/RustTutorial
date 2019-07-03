@@ -1,19 +1,57 @@
-#[derive(Debug)]
-struct Fruit(String, String, i64, i64);
-fn test1() {
-    let a = (1, "apple", 100, 20, 30, 50, 80, 90, "pear", "abc", 1, 2000);
-    println!("{:?}", a.5);
-    println!("OK2");
-}
-fn main() {
-    let a = vec![1, 2, 3, 5, 8];
+#[macro_use]
+extern crate serde_derive;
 
-    let b: Vec<i64> = a
-        .into_iter()
-        .map(|x| {
-            println!("{}", x);
-            x * 2
-        })
-        .collect();
-    println!("{:?}", b);
+extern crate serde;
+extern crate serde_json;
+
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+
+#[derive(Debug)]
+pub struct TeamSize(pub i64, pub i64);
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Match {
+    pub size: TeamSize,
+}
+
+// private
+#[derive(Serialize, Deserialize)]
+struct TeamSizeHelper {
+    min: i64,
+    max: i64,
+}
+
+impl Serialize for TeamSize {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        TeamSizeHelper {
+            min: self.0,
+            max: self.1,
+        }
+        .serialize(serializer)
+
+    }
+}
+
+
+
+impl<'de> Deserialize<'de> for TeamSize {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        Deserialize::deserialize(deserializer).map(|TeamSizeHelper { min, max }| TeamSize(min, max))
+    }
+}
+
+fn main() {
+    let j = r#" { "size": { "min": 2, "max": 15 } } "#;
+
+    let m: Match = serde_json::from_str(j).unwrap();
+    println!("{:?}", m);
+
+    let j = serde_json::to_string(&m).unwrap();
+    println!("{}", j);
 }

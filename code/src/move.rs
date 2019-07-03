@@ -40,7 +40,7 @@ fn edit(m: &mut [i64; 3]) {
     let n = m;
 }
 
-fn main() {
+fn test3() {
     let mut a: [i64; 3] = [1, 2, 3];
     edit(&mut a);
     let mut b = &mut a;
@@ -51,4 +51,13 @@ fn main() {
     c[1] = 500;
     println!("c={:?}", c);
     println!("a={:?}", a);
+}
+
+fn eat(s: String) {
+    println!("eat {}", s);
+}
+fn main() {
+    let mut a = "apple".to_string();
+    eat(a);
+    // println!("{}", a);
 }

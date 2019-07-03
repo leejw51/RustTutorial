@@ -22,7 +22,7 @@ fn test1() {
 struct Number {
     value: i64,
 }
-fn test2() {
+fn main() {
     let a = 100;
     {
         let mut c = a;
@@ -33,22 +33,4 @@ fn test2() {
     let s1 = Number { value: 200 };
     let s2 = s1;
     println!("{:?}", s1);
-}
-
-fn edit(m: &mut [i64; 3]) {
-    m[0] = 100;
-    let n = m;
-}
-
-fn main() {
-    let mut a: [i64; 3] = [1, 2, 3];
-    edit(&mut a);
-    let mut b = &mut a;
-    println!("b={:?}", b);
-    b[2] = 150;
-    println!("b={:?}", b);
-    let mut c = &mut a;
-    c[1] = 500;
-    println!("c={:?}", c);
-    println!("a={:?}", a);
 }
