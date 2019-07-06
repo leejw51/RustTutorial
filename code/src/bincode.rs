@@ -23,6 +23,9 @@ fn main() {
     assert_eq!(encoded.len(), 8 + 4 * 4);
 
     let decoded: World = deserialize(&encoded[..]).unwrap();
+    for x in &decoded.0 {
+        println!("{:?}", x);
+    }
     println!("decoded={:?}", decoded);
 
     assert_eq!(world, decoded);
