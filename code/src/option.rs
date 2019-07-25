@@ -3,7 +3,7 @@ extern crate structopt;
 
 use std::path::PathBuf;
 use structopt::StructOpt;
-#[derive(StructOpt)]
+#[derive(StructOpt, Debug)]
 #[structopt(name = "make-cookie")]
 struct MakeCookie {
     #[structopt(name = "supervisor", default_value = "Puck", long = "supervisor")]
@@ -15,7 +15,7 @@ struct MakeCookie {
     cmd: Command,
 }
 
-#[derive(StructOpt)]
+#[derive(StructOpt,Debug)]
 enum Command {
     #[structopt(name = "pound")]
     /// Pound acorns into flour for cookie dough.
@@ -30,10 +30,12 @@ enum Command {
     },
     #[structopt(name = "finish")]
     Finish(Finish),
+    #[structopt(name = "hello", about = "hello world!")]
+    Hello,
 }
 
 // Subcommand can also be externalized by using a 1-uple enum variant
-#[derive(StructOpt)]
+#[derive(StructOpt,Debug)]
 struct Finish {
     #[structopt(short = "t")]
     time: u32,
@@ -42,7 +44,7 @@ struct Finish {
 }
 
 // subsubcommand!
-#[derive(StructOpt)]
+#[derive(StructOpt,Debug)]
 enum FinishType {
     #[structopt(name = "glaze")]
     Glaze { applications: u32 },
@@ -51,5 +53,6 @@ enum FinishType {
 }
 fn main() {
     let opt = MakeCookie::from_args();
+    println!("opt={:?}", opt);
 
 }
