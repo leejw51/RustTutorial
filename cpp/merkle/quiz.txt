@@ -230,24 +230,7 @@ void show_hash(Hashes h)
 
 string compute_merkle(Hashes src)
 {
-	if (src.size() == 1)
-	{
-		return src[0];
-	}
-	assert(src.size() % 2 == 0);
-	int i = 0;
-
-	Hashes ret;
-	for (i = 0; i < src.size(); i += 2)
-	{
-		Hashes tmp;
-		tmp.push_back(src[i]);
-		tmp.push_back(src[i + 1]);
-		auto computed = sha256_vector(tmp);
-		ret.push_back(computed);
-		cout << "compute----" << computed << endl;
-	}
-	return compute_merkle(ret);
+	............
 }
 int main()
 {
@@ -266,3 +249,6 @@ int main()
 	cout << "final hash =" << final << endl;
 	return 0;
 }
+
+
+final hash =f763dd68d4be72ce37b7f55356e24f958eab69eae59e7ed6d932bacd21d23835
