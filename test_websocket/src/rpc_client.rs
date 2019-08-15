@@ -18,8 +18,18 @@ impl RpcClient {
 
         // standard in isn't supported in mio yet, so we use a thread
         // see https://github.com/carllerche/mio/issues/321
+        // tx, rx
         let (usr_msg, stdin_ch) = mpsc::channel(0);
         thread::spawn(|| {
+            let cmd_subscribe = r#"
+    {
+        "jsonrpc": "2.0",
+        "method": "subscribe",
+        "id": "0",
+        "params": {
+            "query": "tm.event='NewBlock'"
+        }
+    }"#;
             let mut input = String::new();
             let mut stdin_sink = usr_msg.wait();
             loop {
@@ -30,6 +40,8 @@ impl RpcClient {
                 let (close, msg) = match trimmed {
                     "/close" => (true, OwnedMessage::Close(None)),
                     "/ping" => (false, OwnedMessage::Ping(b"PING".to_vec())),
+                    "/hello" => (false, OwnedMessage::Ping(b"HELLO".to_vec())),
+                    "/subscribe" => (false, OwnedMessage::Text(cmd_subscribe.to_string())),
                     _ => (false, OwnedMessage::Text(trimmed.to_string())),
                 };
 
