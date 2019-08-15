@@ -65,6 +65,17 @@ impl RpcClient {
                     .filter_map(|message| {
                         println!("Received Message: {:?}", message);
                         match message {
+                            OwnedMessage::Text(a) => {
+                                println!("text!  = {}", a);
+                                let b: serde_json::Value =
+                                    serde_json::from_str(a.as_str()).unwrap();
+                                println!("received\n{}", b);
+                                None
+                            }
+                            OwnedMessage::Binary(a) => {
+                                println!("binary! = {}", hex::encode(a));
+                                None
+                            }
                             OwnedMessage::Close(e) => Some(OwnedMessage::Close(e)),
                             OwnedMessage::Ping(d) => Some(OwnedMessage::Pong(d)),
                             _ => None,
