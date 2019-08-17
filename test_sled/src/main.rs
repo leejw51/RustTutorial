@@ -6,10 +6,21 @@ fn main() {
     // set and get
     tree.insert(b"ok", b"apple".to_vec());
     tree.insert(b"ok", b"apple5".to_vec());
-    let a= tree.get(b"ok").unwrap().unwrap();
-    let b= str::from_utf8(&a);
-    println!("{:?}",b);
+    println!("{:?}", str::from_utf8(&tree.get(b"ok").unwrap_or_default().unwrap_or_default()).unwrap_or_default());
+    match tree.get(b"ok") {
+        Ok(a) => {
+            match a {
+                Some(c) => {
+                    let r= str::from_utf8(&c).unwrap();
+                    println!("{:?}",r);
 
-    // block until all operations are on-disk
+                },
+                _=>{}
+
+            }
+        },
+        _ => {},
+    }
+        // block until all operations are on-disk
     tree.flush();
 }
