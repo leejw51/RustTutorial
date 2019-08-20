@@ -1,21 +1,9 @@
-trait Item {
-     fn get_price(&self) ->i64 {
-        return 0;
-    }
-}
-
-struct Sword {
-
-}
-
-impl Item for Sword {
-    fn get_price(&self)->i64 {
-        10000
-    }
-}
+use std::rc::Rc;
 fn main() {
-    let a= Sword{};
-    let c: &Item= & a;
-    let b= c.get_price();
-    println!("price={}",b);
+   let a = Rc::new("apple".to_string());
+   let b = a.clone();
+   println!("{:?}", a);
+   println!("{:?}", *a);
+   println!("{:?}", &a);
+    println!("{:?}", b);
 }
