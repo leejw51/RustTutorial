@@ -7,3 +7,7 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+hkd32= "0.1.2"
+tiny-hderive = "0.2.1"
+hex = "0.3.2"
+ethsign= "0.6.1"
