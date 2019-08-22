@@ -16,8 +16,20 @@ use jsonrpc_core_client::{RpcChannel};
 
 const CONNECTION: &'static str = "ws://127.0.0.1:2794";
 
+struct My {
+    channel: RpcChannel,
+}
+
+impl From<RpcChannel> for My {
+	fn from(sender: RpcChannel) -> Self {
+		My {
+            channel: sender
+        }
+	}
+}
+
 fn main() {
-    let a  = connect(CONNECTION).unwrap();
+    let a  = connect::<My>(CONNECTION).unwrap();
     let mut runtime = tokio::runtime::current_thread::Builder::new()
         .build()
         .unwrap();
