@@ -6,38 +6,50 @@ use futures::future::Future;
 use futures::sink::Sink;
 use futures::stream::Stream;
 use futures::sync::mpsc;
-use  futures::sync::mpsc::Sender;
+use futures::sync::mpsc::Sender;
 //use jsonrpc_ws_client::connect;
+use jsonrpc_client_transports::transports::ws::connect;
+use jsonrpc_client_transports::{RawClient, TypedClient};
+use jsonrpc_client_transports::{RpcChannel, RpcError};
 use std::io::stdin;
 use std::thread;
 use websocket::result::WebSocketError;
 use websocket::{ClientBuilder, OwnedMessage};
-use jsonrpc_client_transports::RpcChannel;
-use jsonrpc_client_transports::transports::ws::connect;
-const CONNECTION: &'static str = "ws://127.0.0.1:2794";
+const CONNECTION: &'static str = "ws://localhost:26657/websocket";
+#[derive(Clone)]
+struct TestClient(TypedClient);
 
-struct My {
-    channel: RpcChannel,
+impl From<RpcChannel> for TestClient {
+    fn from(channel: RpcChannel) -> Self {
+        TestClient(channel.into())
+    }
 }
 
-impl From<RpcChannel> for My {
-	fn from(sender: RpcChannel) -> Self {
-		My {
-            channel: sender
-        }
-	}
+impl TestClient {
+    fn hello(&self, msg: &'static str) -> impl Future<Item = String, Error = RpcError> {
+        self.0.call_method("hello", "String", (msg,))
+    }
+    fn fail(&self) -> impl Future<Item = (), Error = RpcError> {
+        self.0.call_method("fail", "()", ())
+    }
 }
+fn main2() {
+    let a = connect::<TestClient>(CONNECTION);
 
-fn main() {
-    let a  = connect::<My>(CONNECTION).unwrap();
     let mut runtime = tokio::runtime::current_thread::Builder::new()
         .build()
         .unwrap();
-    runtime.block_on(a);
+    runtime.block_on(a.unwrap());
+
+    // rt::run(run);
+
+    // then
+    // let result = rx.recv_timeout(Duration::from_secs(3)).unwrap();
+
+    println!("OK");
 }
 
-
-fn main2() {
+fn main() {
     println!("Connecting to {}", CONNECTION);
     let mut runtime = tokio::runtime::current_thread::Builder::new()
         .build()

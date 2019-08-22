@@ -1,0 +1,45 @@
+extern crate futures;
+extern crate tokio;
+extern crate websocket;
+
+use futures::future::Future;
+use futures::sink::Sink;
+use futures::stream::Stream;
+use futures::sync::mpsc;
+use  futures::sync::mpsc::Sender;
+//use jsonrpc_ws_client::connect;
+use std::io::stdin;
+use std::thread;
+use websocket::result::WebSocketError;
+use websocket::{ClientBuilder, OwnedMessage};
+use jsonrpc_client_transports::RpcChannel;
+use jsonrpc_client_transports::transports::ws::connect;
+
+const CONNECTION: &'static str = "ws://localhost:26657/websocket";
+
+struct My {
+    channel: RpcChannel,
+}
+
+impl From<RpcChannel> for My {
+	fn from(sender: RpcChannel) -> Self {
+		My {
+            channel: sender
+        }
+	}
+}
+
+fn main() {
+    let a  = connect::<My>(CONNECTION).unwrap();
+    let mut client = tokio::runtime::current_thread::Builder::new()
+        .build()
+        .unwrap();
+
+            let mut runtime = tokio::runtime::current_thread::Builder::new()
+        .build()
+        .unwrap();
+     runtime.block_on(a).unwrap();
+      
+   
+    println!("OK");
+}
