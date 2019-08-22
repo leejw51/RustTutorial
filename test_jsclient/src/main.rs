@@ -7,13 +7,13 @@ use futures::sink::Sink;
 use futures::stream::Stream;
 use futures::sync::mpsc;
 use  futures::sync::mpsc::Sender;
-use jsonrpc_ws_client::connect;
+//use jsonrpc_ws_client::connect;
 use std::io::stdin;
 use std::thread;
 use websocket::result::WebSocketError;
 use websocket::{ClientBuilder, OwnedMessage};
-use jsonrpc_core_client::{RpcChannel};
-
+use jsonrpc_client_transports::RpcChannel;
+use jsonrpc_client_transports::transports::ws::connect;
 const CONNECTION: &'static str = "ws://127.0.0.1:2794";
 
 struct My {
@@ -35,6 +35,8 @@ fn main() {
         .unwrap();
     runtime.block_on(a);
 }
+
+
 fn main2() {
     println!("Connecting to {}", CONNECTION);
     let mut runtime = tokio::runtime::current_thread::Builder::new()
