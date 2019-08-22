@@ -17,11 +17,11 @@ use jsonrpc_core_client::{RpcChannel};
 const CONNECTION: &'static str = "ws://127.0.0.1:2794";
 
 fn main() {
-    let a = connect::<RpcChannel>(CONNECTION);
+    let a  = connect(CONNECTION).unwrap();
     let mut runtime = tokio::runtime::current_thread::Builder::new()
         .build()
         .unwrap();
-    runtime.block_on(a.unwrap()).unwrap();
+    runtime.block_on(a);
 }
 fn main2() {
     println!("Connecting to {}", CONNECTION);
