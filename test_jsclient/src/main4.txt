@@ -1,0 +1,104 @@
+extern crate futures;
+extern crate tokio;
+extern crate websocket;
+use futures::future::lazy;
+use tokio::net::TcpListener;
+
+use futures::future::Future;
+use futures::sink::Sink;
+use futures::stream::Stream;
+use futures::sync::mpsc;
+use futures::sync::mpsc::Sender;
+use tokio::io;
+use tokio::net::TcpStream;
+//use jsonrpc_ws_client::connect;
+use jsonrpc_client_transports::transports::ws::connect;
+use jsonrpc_client_transports::{RawClient, TypedClient};
+use jsonrpc_client_transports::{RpcChannel, RpcError};
+use std::io::stdin;
+use std::thread;
+use websocket::result::WebSocketError;
+use websocket::{ClientBuilder, OwnedMessage};
+const CONNECTION: &'static str = "ws://localhost:26657/websocket";
+#[derive(Clone)]
+struct TestClient(TypedClient);
+
+impl From<RpcChannel> for TestClient {
+    fn from(channel: RpcChannel) -> Self {
+        TestClient(channel.into())
+    }
+}
+
+impl TestClient {
+    fn hello(&self, msg: &'static str) -> impl Future<Item = String, Error = RpcError> {
+        self.0.call_method("hello", "String", (msg,))
+    }
+    fn fail(&self) -> impl Future<Item = (), Error = RpcError> {
+        self.0.call_method("fail", "()", ())
+    }
+}
+fn main2() {
+    let addr = "127.0.0.1:80".parse().unwrap();
+    let client = TcpStream::connect(&addr)
+        .and_then(|stream| {
+            println!("created stream");
+
+            // Process stream here.
+
+            Ok(())
+        })
+        .map_err(|err| {
+            // All tasks must have an `Error` type of `()`. This forces error
+            // handling and helps avoid silencing failures.
+            //
+            // In our example, we are only going to log the error to STDOUT.
+            println!("connection error = {:?}", err);
+        });
+
+    println!("About to create the stream and write to it...");
+    tokio::run(client);
+    println!("Stream has been created and written to.");
+}
+
+fn main3() {
+      let addr = "127.0.0.1:6142".parse().unwrap();
+    let listener = TcpListener::bind(&addr).unwrap();
+
+    // Here we convert the `TcpListener` to a stream of incoming connections
+    // with the `incoming` method. We then define how to process each element in
+    // the stream with the `for_each` combinator method
+    let server = listener.incoming().for_each(|socket| {
+        // TODO: Process socket
+        Ok(())
+    })
+    .map_err(|err| {
+        // Handle error by printing to STDOUT.
+        println!("accept error = {:?}", err);
+    });
+
+    println!("server running on localhost:6142");
+
+    // Start the server
+    //
+    // This does a few things:
+    //
+    // * Start the Tokio runtime
+    // * Spawns the `server` task onto the runtime.
+    // * Blocks the current thread until the runtime becomes idle, i.e. all
+    //   spawned tasks have completed.
+    tokio::run(server);
+}
+
+
+fn main() {
+	  let addr = "127.0.0.1:80".parse().unwrap();
+
+    let future = TcpStream::connect(&addr)
+        .and_then(|socket| {
+            io::write_all(socket, b"hello world")
+        })
+        .map(|_| println!("write complete"))
+        .map_err(|_| println!("failed"));
+
+    tokio::run(future);
+}

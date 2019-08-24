@@ -8,8 +8,9 @@ edition = "2018"
 
 [dependencies]
 jsonrpc="0.11.0"
-
+jsonrpc-core=""
 websocket="0.23.0"
 futures="0.1.28"
 tokio="0.1.22"
 jsonrpc-client-transports = "13.0.1"
+serde_json=""
