@@ -21,15 +21,14 @@ fn main() {
     let mut rt = Runtime::new().unwrap();
     let a = connect::<MyClient>(CONNECTION);
     let b: MyClient = rt.block_on(a.unwrap()).unwrap();
-    let mut map = Map::new();
     //map.insert("name".to_string(), "Jeffry".into());
-    let fut = b.0.call_method("status", Params::Map(map));
-	match rt.block_on(fut) {
+    loop {
+        let mut map = Map::new();
+        let fut = b.0.call_method("status", Params::Map(map));
+        match rt.block_on(fut) {
 			Ok(val) => println!("{}",serde_json::to_string_pretty(&val).unwrap()),
 			Err(err) => println!("err {:?}",err),
 		}
-    println!("HI");
-    loop {
         thread::sleep(time::Duration::from_millis(1000));
     }
 }
