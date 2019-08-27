@@ -13,6 +13,7 @@ use futures::{Async, Poll};
 use jsonrpc_client_transports::transports::ws::connect;
 use jsonrpc_client_transports::RawClient;
 use jsonrpc_client_transports::RpcChannel;
+use jsonrpc_client_transports::RpcError;
 use jsonrpc_client_transports::SubscriptionStream;
 use jsonrpc_core::types::params::Params;
 use serde_json::json;
@@ -65,8 +66,11 @@ where
     }
 }
 
+
+
 fn main() {
     let (channel_tx, channel_rx): (Sender<Value>, Receiver<Value>) = mpsc::channel(0);
+    let mut channel_sink = channel_tx.clone().wait();
     let mut rt = Runtime::new().unwrap();
     let a = connect::<MyClient>(CONNECTION);
     let b: MyClient = rt.block_on(a.unwrap()).unwrap();
@@ -78,12 +82,28 @@ fn main() {
     let stream: SubscriptionStream = rt.block_on(fut).unwrap();
 
     println!("subscribed ok!");
-    let m = ProcessFuture::new(stream).map_err(|e| {});
-    tokio::run(m);
+ 
+    let runner=stream
+    
+     //   into_future()
+        //.filter_map(|message| None)
+        // .select(channel_rx)
+        // .forward(channel_tx)
+      //  .select(channel_rx.map_err(|_| RpcError))
+        
+        .forward(channel_tx.map_err(|_| RpcError))
+    
+        //.wait()
+       // .wait()
+        ;
+        
+
+    rt.block_on(runner);
+    //tokio::run(runner);
     /* stream.filter_map(|a| {
         None
     });*/
-    println!("wait");
+    println!("wait================================");
     loop {
         thread::sleep(time::Duration::from_millis(1000));
     }
