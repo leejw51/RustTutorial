@@ -26,15 +26,12 @@ fn main() {
     let b: MyClient = rt.block_on(a.unwrap()).unwrap();
     println!("connected..");
 
-    //  map.insert("query".to_string(), "tm.event='NewBlock'".into());
-    // let fut = b.0.call_method("subscribe", Params::Map(map));
+    let mut map = Map::new();
+    map.insert("query".to_string(), "tm.event='NewBlock'".into());
+    let fut = b.0.subscribe("subscribe", Params::Map(map), "", "");
+    let stream=rt.block_on(fut).unwrap();
+    println!("subscribed ok!");
     loop {
-        let mut map = Map::new();
-        let fut = b.0.call_method("status", Params::Map(map));
-        match rt.block_on(fut) {
-            Ok(val) => println!("{}", serde_json::to_string_pretty(&val).unwrap()),
-            Err(err) => println!("err {:?}", err),
-        }
         thread::sleep(time::Duration::from_millis(1000));
     }
     println!("done");
