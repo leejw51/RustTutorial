@@ -1,17 +1,28 @@
 use futures::future::lazy;
+use futures::future::Future;
+use futures::sink::Sink;
+use futures::stream::Stream;
+use futures::sync::mpsc;
+
+
 use futures::sync::oneshot;
-use futures::Future;
+
 use jsonrpc_client_transports::transports::ws::connect;
 use jsonrpc_client_transports::RawClient;
 use jsonrpc_client_transports::RpcChannel;
 use jsonrpc_client_transports::SubscriptionStream;
 use jsonrpc_core::types::params::Params;
 use serde_json::map::Map;
+use std::io::Read;
 use std::thread;
 use std::time;
 use tokio::io;
 use tokio::runtime::Runtime;
 use websocket::OwnedMessage;
+use serde_json::Value;
+use futures::sync::mpsc::Sender;
+use futures::sync::mpsc::Receiver;
+
 const CONNECTION: &'static str = "ws://localhost:26657/websocket";
 #[derive(Clone)]
 struct MyClient(RawClient);
@@ -23,6 +34,7 @@ impl From<RpcChannel> for MyClient {
 }
 
 fn main() {
+    let (channel_tx, channel_rx): (Sender<Value>, Receiver<Value>) = mpsc::channel(0);
     let mut rt = Runtime::new().unwrap();
     let a = connect::<MyClient>(CONNECTION);
     let b: MyClient = rt.block_on(a.unwrap()).unwrap();
@@ -34,6 +46,10 @@ fn main() {
     let stream: SubscriptionStream = rt.block_on(fut).unwrap();
 
     println!("subscribed ok!");
+      /* stream.filter_map(|a| {
+           None
+       });*/
+
     loop {
         thread::sleep(time::Duration::from_millis(1000));
     }
