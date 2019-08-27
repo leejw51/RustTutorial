@@ -1,5 +1,6 @@
 use futures::future::Future;
 use futures::stream::Stream;
+use futures::sync::mpsc;
 use jsonrpc_client_transports::transports::ws::connect;
 use jsonrpc_client_transports::RawClient;
 use jsonrpc_client_transports::RpcChannel;
@@ -8,6 +9,7 @@ use serde_json::map::Map;
 use std::thread;
 use std::time;
 use tokio::runtime::Runtime;
+
 use websocket::OwnedMessage;
 
 use tokio::io;
@@ -25,19 +27,59 @@ impl From<RpcChannel> for MyClient {
 
 fn main() {
     let mut rt = Runtime::new().unwrap();
+    let fut = connect::<MyClient>(CONNECTION)
+        .unwrap()
+        .and_then(|a| {
+            println!("connected");
+            let mut map = Map::new();
+            map.insert("query".to_string(), "tm.event='NewBlock'".into());
+            a.0.subscribe(
+                "subscribe",
+                Params::Map(map),
+                "tm.event='NewBlock'",
+                "unsubscribe",
+            )
+        })
+        .and_then(|a| {
+            a.into_future()
+                .map(move |(result, _)| {
+                    println!("subscription stream {:?}", result);
+                })
+                .map_err(|_| {
+                    panic!("Expected message not received.");
+                })
+        });
+
+    rt.block_on(fut);
+    println!("==end==");
+}
+
+fn main5() {
+    let mut rt = Runtime::new().unwrap();
     let a = connect::<MyClient>(CONNECTION);
     let b: MyClient = rt.block_on(a.unwrap()).unwrap();
     println!("connected..");
     let mut map = Map::new();
     map.insert("query".to_string(), "tm.event='NewBlock'".into());
-    // let fut = b.0.call_method("subscribe", Params::Map(map));
-    //rt.block_on(fut);
+
     let fut =
-        b.0.subscribe("subscribe", Params::Map(map), "subscribe", "");
-    let stream = rt.block_on(fut).unwrap();
-    let fut2 = stream.into_future();
-    let fut3 = fut2.map(|a| {});
-    rt.block_on(fut3);
+        b.0.subscribe(
+            "subscribe",
+            Params::Map(map),
+            "tm.event='NewBlock'",
+            "unsubscribe",
+        )
+        .and_then(|stream| {
+            stream
+                .into_future()
+                .map(move |(result, _)| {
+                    println!("{:?}", result);
+                })
+                .map_err(|_| {
+                    panic!("Expected message not received.");
+                })
+        });
+    rt.block_on(fut);
 }
 
 fn main2() {
