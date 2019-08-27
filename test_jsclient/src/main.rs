@@ -37,15 +37,15 @@ impl From<RpcChannel> for MyClient {
     }
 }
 
-pub struct Display10<T> {
+pub struct ProcessFuture<T> {
     stream: T,
 }
-impl<T> Display10<T> {
-    fn new(stream: T) -> Display10<T> {
-        Display10 { stream }
+impl<T> ProcessFuture<T> {
+    fn new(stream: T) -> ProcessFuture<T> {
+        ProcessFuture { stream }
     }
 }
-impl<T> Future for Display10<T>
+impl<T> Future for ProcessFuture<T>
 where
     T: Stream,
 {
@@ -74,11 +74,11 @@ fn main() {
 
     let mut map = Map::new();
     map.insert("query".to_string(), "tm.event='NewBlock'".into());
-    let fut = b.0.subscribe("subscribe", Params::Map(map), "", "");
+    let fut = b.0.subscribe("subscribe", Params::Map(map), "NewBlock", "");
     let stream: SubscriptionStream = rt.block_on(fut).unwrap();
 
     println!("subscribed ok!");
-    let m = Display10::new(stream).map_err(|e| {});
+    let m = ProcessFuture::new(stream).map_err(|e| {});
     tokio::run(m);
     /* stream.filter_map(|a| {
         None
