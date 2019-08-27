@@ -4,25 +4,29 @@ use futures::sink::Sink;
 use futures::stream::Stream;
 use futures::sync::mpsc;
 
-
 use futures::sync::oneshot;
 
+use futures::sync::mpsc::Receiver;
+use futures::sync::mpsc::Sender;
+use futures::try_ready;
+use futures::{Async, Poll};
 use jsonrpc_client_transports::transports::ws::connect;
 use jsonrpc_client_transports::RawClient;
 use jsonrpc_client_transports::RpcChannel;
 use jsonrpc_client_transports::SubscriptionStream;
 use jsonrpc_core::types::params::Params;
+use serde_json::json;
 use serde_json::map::Map;
+use serde_json::Value;
+use std::fmt;
 use std::io::Read;
 use std::thread;
 use std::time;
 use tokio::io;
+use tokio::net::{tcp::ConnectFuture, TcpStream};
 use tokio::runtime::Runtime;
+use websocket::result::WebSocketError;
 use websocket::OwnedMessage;
-use serde_json::Value;
-use futures::sync::mpsc::Sender;
-use futures::sync::mpsc::Receiver;
-
 const CONNECTION: &'static str = "ws://localhost:26657/websocket";
 #[derive(Clone)]
 struct MyClient(RawClient);
@@ -30,6 +34,34 @@ struct MyClient(RawClient);
 impl From<RpcChannel> for MyClient {
     fn from(channel: RpcChannel) -> Self {
         MyClient(channel.into())
+    }
+}
+
+pub struct Display10<T> {
+    stream: T,
+}
+impl<T> Display10<T> {
+    fn new(stream: T) -> Display10<T> {
+        Display10 { stream }
+    }
+}
+impl<T> Future for Display10<T>
+where
+    T: Stream,
+{
+    type Item = ();
+    type Error = T::Error;
+
+    fn poll(&mut self) -> Poll<(), Self::Error> {
+        println!("polling");
+        loop {
+            match try_ready!(self.stream.poll()) {
+                Some(_value) => println!("got value"),
+
+                None => {}
+            };
+        }
+        Ok(Async::Ready(()))
     }
 }
 
@@ -46,10 +78,12 @@ fn main() {
     let stream: SubscriptionStream = rt.block_on(fut).unwrap();
 
     println!("subscribed ok!");
-      /* stream.filter_map(|a| {
-           None
-       });*/
-
+    let m = Display10::new(stream).map_err(|e| {});
+    tokio::run(m);
+    /* stream.filter_map(|a| {
+        None
+    });*/
+    println!("wait");
     loop {
         thread::sleep(time::Duration::from_millis(1000));
     }
