@@ -1,102 +1,78 @@
-use futures::future::Future;
-use futures::stream::Stream;
-use futures::sync::mpsc;
-use jsonrpc_client_transports::transports::ws::connect;
-use jsonrpc_client_transports::RawClient;
-use jsonrpc_client_transports::RpcChannel;
-use jsonrpc_core::types::params::Params;
-use serde_json::map::Map;
-use std::thread;
-use std::time;
-use tokio::runtime::Runtime;
+extern crate futures;
 
-use websocket::OwnedMessage;
+use futures::try_ready;
+use futures::{Async, Future, Poll, Stream};
+use std::fmt;
 
-use tokio::io;
-use tokio::net::TcpStream;
+pub struct Fibonacci {
+    curr: u64,
+    next: u64,
+}
 
-const CONNECTION: &'static str = "ws://localhost:26657/websocket";
-#[derive(Clone)]
-struct MyClient(RawClient);
+impl Fibonacci {
+    fn new() -> Fibonacci {
+        Fibonacci { curr: 1, next: 1 }
+    }
+}
 
-impl From<RpcChannel> for MyClient {
-    fn from(channel: RpcChannel) -> Self {
-        MyClient(channel.into())
+impl Stream for Fibonacci {
+    type Item = u64;
+
+    // The stream will never yield an error
+    type Error = ();
+
+    fn poll(&mut self) -> Poll<Option<u64>, ()> {
+        let curr = self.curr;
+        let next = curr + self.next;
+
+        self.curr = self.next;
+        self.next = next;
+
+        Ok(Async::Ready(Some(curr)))
+    }
+}
+
+pub struct Display10<T> {
+    stream: T,
+    curr: usize,
+}
+
+impl<T> Display10<T> {
+    fn new(stream: T) -> Display10<T> {
+        Display10 { stream, curr: 0 }
+    }
+}
+
+impl<T> Future for Display10<T>
+where
+    T: Stream,
+    T::Item: fmt::Display,
+{
+    type Item = ();
+    type Error = T::Error;
+
+    fn poll(&mut self) -> Poll<(), Self::Error> {
+        while self.curr < 10 {
+            let value = match try_ready!(self.stream.poll()) {
+                Some(value) => value,
+                // There were less than 10 values to display, terminate the
+                // future.
+                None => break,
+            };
+
+            println!("value #{} = {}", self.curr, value);
+            self.curr += 1;
+        }
+
+        Ok(Async::Ready(()))
     }
 }
 
 fn main() {
-    let mut rt = Runtime::new().unwrap();
-    let fut = connect::<MyClient>(CONNECTION)
-        .unwrap()
-        .and_then(|a| {
-            println!("connected");
-            let mut map = Map::new();
-            map.insert("query".to_string(), "tm.event='NewBlock'".into());
-            a.0.subscribe(
-                "subscribe",
-                Params::Map(map),
-                "tm.event='NewBlock'",
-                "unsubscribe",
-            )
-        })
-        .and_then(|a| {
-            a.into_future()
-                .map(move |(result, _)| {
-                    println!("subscription stream {:?}", result);
-                })
-                .map_err(|_| {
-                    panic!("Expected message not received.");
-                })
-        });
+    let fib = Fibonacci::new();
+    let display = Display10::new(fib);
 
-    rt.block_on(fut);
-    println!("==end==");
-}
+    tokio::run(display);
 
-fn main5() {
-    let mut rt = Runtime::new().unwrap();
-    let a = connect::<MyClient>(CONNECTION);
-    let b: MyClient = rt.block_on(a.unwrap()).unwrap();
-    println!("connected..");
-    let mut map = Map::new();
-    map.insert("query".to_string(), "tm.event='NewBlock'".into());
-
-    let fut =
-        b.0.subscribe(
-            "subscribe",
-            Params::Map(map),
-            "tm.event='NewBlock'",
-            "unsubscribe",
-        )
-        .and_then(|stream| {
-            stream
-                .into_future()
-                .map(move |(result, _)| {
-                    println!("{:?}", result);
-                })
-                .map_err(|_| {
-                    panic!("Expected message not received.");
-                })
-        });
-    rt.block_on(fut);
-}
-
-fn main2() {
-    let addr = "127.0.0.1:26657".parse().unwrap();
-
-    let future = TcpStream::connect(&addr)
-        .and_then(|socket| io::write_all(socket, b"status"))
-        .and_then(|(socket, _)| {
-            println!("read bytes");
-            // read exactly 11 bytes
-            io::read_exact(socket, vec![0; 20])
-        })
-        .and_then(|(socket, buf)| {
-            println!("got {:?}", buf);
-            Ok(())
-        })
-        .map_err(|_| println!("failed"));
-
-    tokio::run(future);
+    println!("OK");
 }

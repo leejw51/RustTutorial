@@ -1,0 +1,103 @@
+use futures::future::Future;
+use futures::prelude::*;
+use futures::stream::Stream;
+use futures::sync::mpsc;
+use jsonrpc_client_transports::transports::ws::connect;
+use jsonrpc_client_transports::RawClient;
+use jsonrpc_client_transports::RpcChannel;
+use jsonrpc_core::types::params::Params;
+use serde_json::map::Map;
+use std::thread;
+use std::time;
+use tokio::runtime::Runtime;
+
+use futures::{Async, Poll};
+use std::fmt;
+use websocket::OwnedMessage;
+
+use tokio::io;
+use tokio::net::TcpStream;
+
+const CONNECTION: &'static str = "ws://localhost:26657/websocket";
+#[derive(Clone)]
+struct MyClient(RawClient);
+
+impl From<RpcChannel> for MyClient {
+    fn from(channel: RpcChannel) -> Self {
+        MyClient(channel.into())
+    }
+}
+
+fn main() {
+    let mut rt = Runtime::new().unwrap();
+    let fut = connect::<MyClient>(CONNECTION)
+        .unwrap()
+        .and_then(|a| {
+            println!("connected");
+            let mut map = Map::new();
+            map.insert("query".to_string(), "tm.event='NewBlock'".into());
+            a.0.subscribe("subscribe", Params::Map(map), "tm.event='NewBlock'", "")
+        })
+        .and_then(|a| {
+            println!("subscribed");
+            a.into_future()
+                .map(move |(result, _)| {
+                    format!("subscription stream {:?}", result);
+                })
+                .map_err(|_| {
+                    panic!("Expected message not received.");
+                })
+        });
+
+    rt.block_on(fut).map(|a| {
+        println!("result={:?}", a);
+    });
+    println!("==end==");
+}
+
+fn main5() {
+    let mut rt = Runtime::new().unwrap();
+    let a = connect::<MyClient>(CONNECTION);
+    let b: MyClient = rt.block_on(a.unwrap()).unwrap();
+    println!("connected..");
+    let mut map = Map::new();
+    map.insert("query".to_string(), "tm.event='NewBlock'".into());
+
+    let fut =
+        b.0.subscribe(
+            "subscribe",
+            Params::Map(map),
+            "tm.event='NewBlock'",
+            "unsubscribe",
+        )
+        .and_then(|stream| {
+            stream
+                .into_future()
+                .map(move |(result, _)| {
+                    println!("{:?}", result);
+                })
+                .map_err(|_| {
+                    panic!("Expected message not received.");
+                })
+        });
+    rt.block_on(fut);
+}
+
+fn main2() {
+    let addr = "127.0.0.1:26657".parse().unwrap();
+
+    let future = TcpStream::connect(&addr)
+        .and_then(|socket| io::write_all(socket, b"status"))
+        .and_then(|(socket, _)| {
+            println!("read bytes");
+            // read exactly 11 bytes
+            io::read_exact(socket, vec![0; 20])
+        })
+        .and_then(|(socket, buf)| {
+            println!("got {:?}", buf);
+            Ok(())
+        })
+        .map_err(|_| println!("failed"));
+
+    tokio::run(future);
+}
