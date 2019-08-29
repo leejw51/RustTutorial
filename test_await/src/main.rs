@@ -72,6 +72,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             // In a loop, read data from the socket and write the data back.
             loop {
                 count += 1;
+                println!("count {}", count);
                 let n = socket
                     .read(&mut buf)
                     .await
