@@ -1,3 +1,16 @@
+//! Hello world server.
+//!
+//! A simple client that opens a TCP stream, writes "hello world\n", and closes
+//! the connection.
+//!
+//! You can test this out by running:
+//!
+//!     ncat -l 6142
+//!
+//! And then in another terminal run:
+//!
+//!     cargo run --example hello_world
+#![feature(async_await)]
 //! A "hello world" echo server with Tokio
 //!
 //! This server will create a TCP listener, accept connections in a loop, and
@@ -27,7 +40,6 @@ use tokio::net::TcpListener;
 
 use std::env;
 use std::error::Error;
-use std::net::SocketAddr;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -35,14 +47,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // program, but otherwise we'll just set up our TCP listener on
     // 127.0.0.1:8080 for connections.
     let addr = env::args().nth(1).unwrap_or("127.0.0.1:8080".to_string());
-    let addr = addr.parse::<SocketAddr>()?;
 
     // Next up we create a TCP listener which will listen for incoming
     // connections. This TCP listener is bound to the address we determined
     // above and must be associated with an event loop.
-    let mut listener = TcpListener::bind(&addr)?;
+    let mut listener = TcpListener::bind(&addr).await?;
     println!("Listening on: {}", addr);
-
+    let mut count =0;
     loop {
         // Asynchronously wait for an inbound socket.
         let (mut socket, _) = listener.accept().await?;
@@ -60,6 +71,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
             // In a loop, read data from the socket and write the data back.
             loop {
+                count += 1;
                 let n = socket
                     .read(&mut buf)
                     .await
