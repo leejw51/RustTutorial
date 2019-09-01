@@ -1,15 +1,36 @@
-#[macro_use]
-extern crate lazy_static;
+use std::thread;
+use std::time;
+use std::sync::Arc;
 
-use std::env;
+struct Worker {
 
-lazy_static! {
-    static ref EXAMPLE: u8 = {
-        let args: Vec<String> = env::args().collect();
-        let ret: u8 = args[1].parse().unwrap();
-        ret
-    };
 }
-fn main() {
-    println!("runtime option={}", *EXAMPLE);
+
+impl Worker {
+
+}
+
+struct Program {
+
+}
+
+impl Program {
+   
+    pub fn process(&'static  self) {
+        println!("progrm processing");
+    }
+    pub fn run(&'static  self){
+        let a=thread::spawn( move || {
+            self.process();
+        });
+        a.join();
+
+    
+    }
+}
+fn main(){
+    
+    let q: &'static Program= &Program{};
+    q.run();
+    println!("OK");
 }
