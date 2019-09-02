@@ -37,7 +37,7 @@ impl Program {
     }
     pub fn run(&self) -> JoinHandle<()> {
         spawn(move || loop {
-            println!("program running {}", Local::now());
+            //println!("program running {}", Local::now());
             sleep(Duration::from_millis(1000));
         })
     }
@@ -47,7 +47,7 @@ impl Program {
             let mut count: u64 = 1;
             loop {
                 let a = format!("block_{}", count);
-                println!("miner {}", a);
+                println!("miner {}==========================", a);
                 sender.try_send(a).unwrap();
                 count += 1;
                 sleep(Duration::from_millis(1000));
