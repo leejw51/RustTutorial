@@ -1,9 +1,32 @@
 const { app, BrowserWindow } = require('electron');
+const { exec } = require('child_process');
+const execa = require('execa');
+
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) { // eslint-disable-line global-require
   app.quit();
 }
+
+function run_program() {
+
+  (async () => {
+    const { stdout } = await execa('client-rpc', ['--network-id', 'ab']);
+    console.log(stdout);
+    //=> 'unicorns'
+  })();
+
+
+  /* exec('client-rpc --network-id ab', (error, stdout, stderr) => {
+     if (error) {
+       console.error(`exec error: ${error}`);
+       return;
+     }
+     console.log(`stdout: ${stdout}`);
+     console.error(`stderr: ${stderr}`);
+   });*/
+}
+
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -15,6 +38,8 @@ const createWindow = () => {
     width: 800,
     height: 600,
   });
+
+  run_program();
 
   // and load the index.html of the app.
   mainWindow.loadURL(`file://${__dirname}/index.html`);
