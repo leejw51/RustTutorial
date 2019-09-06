@@ -11,8 +11,9 @@ if (require('electron-squirrel-startup')) { // eslint-disable-line global-requir
 function run_program() {
 
   (async () => {
-    const { stdout } = await execa('client-rpc', ['--network-id', 'ab']);
-    console.log(stdout);
+    // const { stdout } = await execa('client-rpc', ['--network-id', 'ab']);
+    const { stdout } = await execa('/usr/local/bin/client-rpc', ['--network-id', 'ab']);
+    // console.log(stdout);
     //=> 'unicorns'
   })();
 
