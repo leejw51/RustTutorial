@@ -1,7 +1,19 @@
 use tokio::io;
 use tokio::net::TcpStream;
 use tokio::prelude::*;
+
 pub fn client() {
+    quest::ask("client==========================================\n");
+    let addr = "127.0.0.1:8080".parse().unwrap();
+    let client = TcpStream::connect(&addr)
+        .map(|stream| {
+            println!("successfully connected to {}", stream.local_addr().unwrap());
+        })
+        .map_err(|e| println!("error={}", e));
+    tokio::run(client);
+}
+
+pub fn client2() {
     quest::ask("client==========================================\n");
     let addr = "127.0.0.1:8080".parse().unwrap();
     let client = TcpStream::connect(&addr)
