@@ -1,0 +1,9 @@
+# neon binding with electron4
+vi ~/.cargo/config
+```
+[build]
+rustflags = ["-Ctarget-feature=+aes,+ssse3"]
+
+[target.'cfg(windows)']
+rustflags = ["-C", "link-args=/DELAYLOAD:node.exe /INCLUDE:__pfnDliNotifyHook2 delayimp.lib"]
+```
