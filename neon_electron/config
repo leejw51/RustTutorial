@@ -2,4 +2,4 @@
 rustflags = ["-Ctarget-feature=+aes,+ssse3"]
 
 [target.'cfg(windows)']
-rustflags = ["-C", "link-args=/DELAYLOAD:node.exe /INCLUDE:__pfnDliNotifyHook2 delayimp.lib"]
+rustflags = ["-C", "link-args=/DELAYLOAD:node.exe /INCLUDE:__pfnDliNotifyHook2 delayimp.lib", "-Ctarget-feature=+aes,+ssse3"]
