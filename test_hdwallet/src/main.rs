@@ -1,4 +1,4 @@
-use bip39::{Language, Mnemonic, Seed};
+use bip39::{Language, Mnemonic, MnemonicType, Seed};
 
 use std::str::FromStr;
 use tiny_hderive::bip32::ExtendedPrivKey;
@@ -7,7 +7,11 @@ use tiny_hderive::bip44::ChildNumber;
 use secp256k1::{Message, PublicKey, Secp256k1, SecretKey};
 
 fn main() {
-    let phrase = "panda eyebrow bullet gorilla call smoke muffin taste mesh discover soft ostrich alcohol speed nation flash devote level hobby quick inner drive ghost inside";
+    /// create a new randomly generated mnemonic phrase
+    let mnemonic2 = Mnemonic::new(MnemonicType::Words24, Language::English);
+    let phrase = mnemonic2.clone();
+
+    //let phrase = "panda eyebrow bullet gorilla call smoke muffin taste mesh discover soft ostrich alcohol speed nation flash devote level hobby quick inner drive ghost inside";
     let mnemonic = Mnemonic::from_phrase(phrase, Language::English).unwrap();
     let seed = Seed::new(&mnemonic, "");
 
