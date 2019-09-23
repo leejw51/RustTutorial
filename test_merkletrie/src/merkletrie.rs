@@ -17,10 +17,25 @@ pub trait MerkletrieDatabase {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq)]
+pub struct Value {
+    pub amount: u64,
+    pub data: Bytes,
+    pub label: String,
+}
+
+impl Value {
+    pub fn new(label: &str) -> Self {
+        let mut ret = Value::default();
+        ret.label = label.to_string();
+        ret
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq)]
 pub struct Node {
     pub address: Bytes,
     pub children: BTreeMap<Bytes, Bytes>, // key: address, value: Node Hash
-    pub value: Bytes,
+    pub value: Bytes,                     // value hash
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq)]
@@ -91,7 +106,20 @@ where
         Ok(decoded)
     }
 
-    pub fn do_put(&mut self, key: &Bytes, index: usize, value: &Bytes, parent: &mut Node) -> Bytes {
+    fn write_value(&self, n: &Value) -> Bytes {
+        let encoded: Vec<u8> = bincode::serialize(&n).unwrap();
+        let hash = self.database.compute_hash(&encoded.as_slice());
+        self.database.write(&hash, &encoded[..]);
+        hash
+    }
+
+    fn read_value(&self, key: &Bytes) -> Result<Value, ()> {
+        let data = self.database.read(key).unwrap();
+        let decoded: Value = bincode::deserialize(&data[..]).map_err(|_e| ())?;
+        Ok(decoded)
+    }
+
+    pub fn do_put(&mut self, key: &Bytes, index: usize, value: &Value, parent: &mut Node) -> Bytes {
         let current = &key[index..index + 1];
         debug!(
             "do_put {}  oldone exist {}",
@@ -116,7 +144,7 @@ where
             }
 
             // update
-            newleaf.value = value.clone();
+            newleaf.value = self.write_value(&value);
 
             // update hash write
             let hash = self.write_node(&newleaf);
@@ -156,7 +184,7 @@ where
         }
     }
 
-    pub fn put(&mut self, key: &Bytes, value: &Bytes) {
+    pub fn put(&mut self, key: &Bytes, value: &Value) {
         let mut root = self.root.clone();
         let _final_root = self.do_put(&key, 0, &value, &mut root);
         debug!("root children={:?}", root.children);
@@ -188,8 +216,9 @@ where
         }
     }
 
-    pub fn get(&mut self, key: &Bytes) -> Result<Bytes, ()> {
-        self.do_get(&key, 0, &self.root)
+    pub fn get(&mut self, key: &Bytes) -> Result<Value, ()> {
+        let valuehash = self.do_get(&key, 0, &self.root)?;
+        self.read_value(&valuehash)
     }
 
     pub fn get_roothash(&self) -> Bytes {

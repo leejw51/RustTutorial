@@ -2,10 +2,14 @@ use super::merkletrie::MerkletrieDatabase;
 use blake2::{Blake2b, Digest};
 use bytes::Bytes;
 use rocksdb::DB;
+use std::sync::Arc;
+use std::sync::Mutex;
 
+type DBShared = Arc<Mutex<DB>>;
+#[derive(Clone, Debug)]
 pub struct Database {
     path: &'static str,
-    db: DB,
+    db: DBShared,
 }
 
 impl MerkletrieDatabase for Database {
@@ -24,16 +28,18 @@ impl MerkletrieDatabase for Database {
 impl Database {
     pub fn new() -> Database {
         let path = "mydb.dat";
-        let db = DB::open_default(path).unwrap();
-        Database { path, db }
+        let dbshared = Arc::new(Mutex::new(DB::open_default(path).unwrap()));
+        Database { path, db: dbshared }
     }
 
     pub fn write(&self, key: &[u8], data: &[u8]) {
-        self.db.put(key, data).unwrap();
+        let db = self.db.lock().unwrap();
+        db.put(key, data).unwrap();
     }
 
     pub fn read(&self, key: &[u8]) -> Option<Vec<u8>> {
-        match self.db.get(key) {
+        let db = self.db.lock().unwrap();
+        match db.get(key) {
             Ok(Some(value)) => Some(value.to_vec()),
             Ok(None) => None,
             Err(_e) => None,
