@@ -14,3 +14,5 @@ neon_electron/electron-app/yarn.lock
 neon_electron/electron-app/electron-app-win32-x64/
 
 .DS_Store
+
+e/
