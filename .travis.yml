@@ -1,0 +1,8 @@
+language: rust
+
+before_script: 
+  cd code 
+
+script:
+  - cargo build --verbose --all
+
