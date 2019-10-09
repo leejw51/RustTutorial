@@ -5,7 +5,7 @@ steps:
 - name: test
   image: rust:1.30
   commands:
-  - cd code  
+  - cd test_drone 
   - cargo build --verbose 
   - cargo test --verbose 
 
