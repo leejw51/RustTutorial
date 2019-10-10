@@ -2,10 +2,7 @@ kind: pipeline
 name: default
 
 steps:
-- name: test
-  image: rust:1.30
+- name: coding
+  image: gcc
   commands:
-  - cd test_drone 
-  - cargo build --verbose 
-  - cargo test --verbose 
-
+  - echo "OK"
