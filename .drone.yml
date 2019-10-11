@@ -5,12 +5,7 @@ name: linux-amd64
 platform:
   arch: amd64
   os: linux
-  
-steps:
-- name: test
-  image: rust:1.30
-  commands:
-  - cd test_drone 
-  - cargo build --verbose 
-  - cargo test --verbose 
+
+
+ 
 
