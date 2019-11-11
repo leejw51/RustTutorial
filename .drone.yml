@@ -23,6 +23,6 @@ steps:
   commands:
   - export SGX_MODE=HW
   - export NETWORK_ID=ab
-  - cd test_drone
+  - cd test_drone_intergration
   - cargo build --release
   
