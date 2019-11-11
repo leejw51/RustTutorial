@@ -9,6 +9,7 @@ steps:
   - cargo build --verbose --all
   - cargo test --verbose --all
   - echo "HOME FOLDER = " $HOME
+  - ls $HOME
 
 ---
 kind: pipeline
@@ -27,4 +28,5 @@ steps:
   - cd test_drone_intergration
   - cargo build --release
   - echo "HOME FOLDER = " $HOME
+  - ls $HOME
   
