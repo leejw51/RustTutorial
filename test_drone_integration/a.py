@@ -1,1 +1,2 @@
 print("OK")
+assert False
