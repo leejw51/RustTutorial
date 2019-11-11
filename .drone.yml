@@ -28,4 +28,5 @@ steps:
   - export NETWORK_ID=ab
   - echo "HOME FOLDER = " $HOME
   - pwd
+  - cd test_drone_integration
   
