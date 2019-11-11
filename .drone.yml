@@ -34,7 +34,7 @@ steps:
   - cargo build
   
 
-  ---
+---
 kind: pipeline
 type: exec
 name: integration_fail_test
