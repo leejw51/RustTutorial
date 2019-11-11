@@ -51,4 +51,5 @@ steps:
   - export NETWORK_ID=ab
   - echo "HOME FOLDER = " $HOME
   - pwd
-  - python a.py
+  - cd test_drone_integration
+  - python ./a.py
