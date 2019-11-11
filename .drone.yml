@@ -30,5 +30,6 @@ steps:
   - echo "HOME FOLDER = " $HOME
   - pwd
   - cd test_drone_integration
+  - rustup default stable
   - cargo build
   
