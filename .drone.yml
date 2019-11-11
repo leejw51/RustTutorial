@@ -29,4 +29,5 @@ steps:
   - echo "HOME FOLDER = " $HOME
   - pwd
   - cd test_drone_integration
+  - cargo build
   
