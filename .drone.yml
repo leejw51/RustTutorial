@@ -24,6 +24,7 @@ platform:
 steps:
 - name: integration
   commands:
+  - cd ./src/test_drone_integration
   - export SGX_MODE=HW
   - export NETWORK_ID=ab
   - echo "HOME FOLDER = " $HOME
