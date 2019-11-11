@@ -26,7 +26,6 @@ steps:
   commands:
   - export SGX_MODE=HW
   - export NETWORK_ID=ab
-  - cd test_drone_intergration
   - echo "HOME FOLDER = " $HOME
   - ls $HOME
   
