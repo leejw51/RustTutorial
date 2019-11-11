@@ -6,6 +6,7 @@ steps:
   image: rust:1.30
   commands:
   - cd test_drone 
+  - pwd
   - cargo build --verbose --all
   - cargo test --verbose --all
   - echo "HOME FOLDER = " $HOME
