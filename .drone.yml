@@ -9,3 +9,20 @@ steps:
   - cargo build --verbose --all
   - cargo test --verbose --all
 
+---
+kind: pipeline
+type: exec
+name: integration
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: integration
+  commands:
+  - export SGX_MODE=HW
+  - export NETWORK_ID=ab
+  - cd test_drone
+  - cargo build --release
+  
