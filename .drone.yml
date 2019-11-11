@@ -8,6 +8,7 @@ steps:
   - cd test_drone 
   - cargo build --verbose --all
   - cargo test --verbose --all
+  - echo "HOME FOLDER = " $HOME
 
 ---
 kind: pipeline
@@ -25,4 +26,5 @@ steps:
   - export NETWORK_ID=ab
   - cd test_drone_intergration
   - cargo build --release
+  - echo "HOME FOLDER = " $HOME
   
