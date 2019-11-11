@@ -24,7 +24,7 @@ platform:
 steps:
 - name: integration
   commands:
-  - export /root/.cargo/bin:$PATH
+  - export PATH=/root/.cargo/bin:$PATH
   - export SGX_MODE=HW
   - export NETWORK_ID=ab
   - echo "HOME FOLDER = " $HOME
