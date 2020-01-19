@@ -121,17 +121,42 @@ where
             Ok(hash)
         }
     }
+
+    pub fn get(&mut self, key: &[u8], output: &mut String) -> Result<Vec<u8>, Error> {
+        self.do_get(&key, 8 * key.len() as i32 - 1,output, &self.root)
+    }
+
+    pub fn do_get(&self, key: &[u8], index: i32, output:&mut String, parent: &Node) -> Result<Vec<u8>, Error> {
+        
+        let which_byte = key.len() as i32 - 1 - index / 8;
+        let byte_value = key[which_byte as usize];
+        let bit = index % 8;
+        let flag_value = byte_value & 1 << bit;
+        let flag = if flag_value > 0 { 1 } else { 0 };
+        let is_leaf = 0 == index;
+        if is_leaf {            
+            let hash = parent.children[flag].as_ref().ok_or_else(|| format_err!("key doesn't exist"))?.clone();
+            let found_node = self.read_node(&hash)?;
+            Ok(found_node.value)            
+        } else if let Some(hash)=parent.children[flag].as_ref() {
+            let childnode = self.read_node(&hash)?;
+            self.do_get(&key, index-1, output,&childnode)
+        } else {
+            Err(format_err!("key doesn't exist"))
+        }
+    }
 }
 
 pub fn sparse_main() {
-    let m = vec![10, 20, 30];
-    let index = 1;
-    println!("{:?}", &m[index..=index]);
     let database = Database::new("./data");
     let mut a = SparseMerkletrie::new(database);
     let mut output = "".to_string();
-    a.put(&vec![0xF1, 0xab, 0xc3], &vec![0, 1, 2], &mut output);
+    let key=vec![0xF1, 0xab, 0xc3];
+    a.put(&key, &vec![0x11, 0xa2, 0xf3], &mut output);
     println!("{}", output);
-
-    println!("Hello, world!");
+    println!("Hello, world!========================");
+    let mut output2 = "".to_string();
+    let read=a.get(&key, &mut output2).expect("read");
+    println!("{}", output);
+    println!("read= {}", hex::encode(&read));
 }
