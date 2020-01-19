@@ -1,9 +1,8 @@
-struct SparseMerkletrie {
-
-}
-
-fn main() {
-    let b= "abc".to_string();
-    let c= 100;
-    println!("Hello, world!");
+#[macro_use]
+extern crate failure;
+mod database;
+mod smt;
+use smt::sparse_main;
+pub fn main() {
+    sparse_main();
 }
