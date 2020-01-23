@@ -291,3 +291,31 @@ pub fn patricia_main()->Result<(),failure::Error> {
     println!("patricia merkletrie= {}", now.elapsed().as_millis());
     Ok(())
 }
+
+
+fn test1() ->Result<(),failure::Error>{
+    let database= MemoryDatabase::default();
+    let mut smt = Merkletrie::new(MemoryDatabase::default());
+    let mut output = "".to_string();
+    smt.put(&hex::decode("1234")?, &hex::decode("fe2a")?);
+    smt.put(&hex::decode("5212")?, &hex::decode("3f4b")?);
+    println!("{}", &hex::encode(&smt.get_roothash()?));
+    Ok(())
+}
+
+fn test2() ->Result<(),failure::Error> {
+    let database= MemoryDatabase::default();
+    let mut smt = Merkletrie::new(MemoryDatabase::default());
+    let mut output = "".to_string();
+    smt.put(&hex::decode("5212")?, &hex::decode("3f4b")?);
+   
+    smt.put(&hex::decode("1234")?, &hex::decode("fe2a")?);
+    println!("{}", &hex::encode(&smt.get_roothash()?));
+    Ok(())
+}
+
+pub fn patricia_order()->Result<(),failure::Error> {
+    test1();
+    test2();
+    Ok(())
+}

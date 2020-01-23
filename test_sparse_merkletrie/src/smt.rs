@@ -221,3 +221,30 @@ pub fn sparse_main()->Result<(),failure::Error> {
     println!("sparse merkletrie= {}", now.elapsed().as_millis());
     Ok(())
 }
+
+
+fn test1() ->Result<(),failure::Error>{
+    let database= MemoryDatabase::default();
+    let mut smt = SparseMerkletrie::new(MemoryDatabase::default());
+    let mut output = "".to_string();
+    smt.put(&hex::decode("1234")?, &hex::decode("fe2a")?, &mut output);
+    smt.put(&hex::decode("5212")?, &hex::decode("3f4b")?, &mut output);
+    println!("{}", &hex::encode(&smt.get_roothash()?));
+    Ok(())
+}
+
+fn test2() ->Result<(),failure::Error> {
+    let database= MemoryDatabase::default();
+    let mut smt = SparseMerkletrie::new(MemoryDatabase::default());
+    let mut output = "".to_string();
+    smt.put(&hex::decode("5212")?, &hex::decode("3f4b")?, &mut output);
+   
+    smt.put(&hex::decode("1234")?, &hex::decode("fe2a")?, &mut output);
+    println!("{}", &hex::encode(&smt.get_roothash()?));
+    Ok(())
+}
+pub fn sparse_order()->Result<(),failure::Error> {
+    test1();
+    test2();
+    Ok(())
+}
