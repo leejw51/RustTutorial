@@ -1,6 +1,5 @@
 use super::patricia_merkletrie::MerkletrieDatabase;
 use blake2::{Blake2b, Digest};
-use bytes::Bytes;
 use rocksdb::DB;
 use std::sync::Arc;
 use std::sync::Mutex;
@@ -13,10 +12,10 @@ pub struct Database {
 }
 
 impl MerkletrieDatabase for Database {
-    fn compute_hash(&self, data: &[u8]) -> Bytes {
+    fn compute_hash(&self, data: &[u8]) -> Vec<u8> {
         let mut hasher = Blake2b::new();
         hasher.input(data);
-        Bytes::from(&hasher.result()[..])
+        hasher.result()[..].to_vec()
     }
     fn write(&self, key: &[u8], data: &[u8]) {
         self.write(key, data);
@@ -56,30 +55,5 @@ impl Database {
         let _path = self.path;
         self.write(b"apple", b"computer");
         println!("read {}", self.read_string(b"apple"));
-    }
-}
-
-#[cfg(test)]
-pub mod test {
-    use super::super::game::*;
-    use super::*;
-    use protobuf::*;
-    #[test]
-    fn test1() {
-        let a = 1;
-        assert!(a + 1 == 2);
-    }
-
-    #[test]
-    fn test2() {
-        let mut m = Chat::new();
-        let src = "HELLO WORLD".to_string();
-        m.set_query(src.clone());
-        let encoded: Vec<u8> = m.write_to_bytes().unwrap();
-        println!("ecoded={:?}", encoded.len());
-
-        let decoded = parse_from_bytes::<Chat>(encoded.as_slice()).unwrap();
-        println!("decoded={}", decoded.query);
-        assert!(src == decoded.query);
     }
 }

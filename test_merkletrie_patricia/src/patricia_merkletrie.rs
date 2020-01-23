@@ -3,15 +3,13 @@ hexa sparse merkletrie
 written by Jongwhan Lee
 */
 
-use bytes;
-use bytes::Bytes;
 use log::debug;
 use serde::Deserialize;
 use serde::Serialize;
 use std::collections::BTreeMap;
 
 pub trait MerkletrieDatabase {
-    fn compute_hash(&self, data: &[u8]) -> Bytes;
+    fn compute_hash(&self, data: &[u8]) -> Vec<u8>;
     fn write(&self, key: &[u8], data: &[u8]);
     fn read(&self, key: &[u8]) -> Option<Vec<u8>>;
 }
@@ -19,7 +17,7 @@ pub trait MerkletrieDatabase {
 #[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq)]
 pub struct Value {
     pub amount: u64,
-    pub data: Bytes,
+    pub data: Vec<u8>,
     pub label: String,
 }
 
@@ -33,9 +31,8 @@ impl Value {
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq)]
 pub struct Node {
-    pub address: Bytes,
-    pub children: BTreeMap<Bytes, Bytes>, // key: address, value: Node Hash
-    pub value: Bytes,                     // value hash
+    pub children: BTreeMap<Vec<u8>, Vec<u8>>, // key: address, value: Node Hash
+    pub value: Vec<u8>,                       // value hash
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq)]
@@ -59,13 +56,13 @@ where
         }
     }
 
-    pub fn load(&mut self, hash: &Bytes) {
+    pub fn load(&mut self, hash: &Vec<u8>) {
         let node_found = self.read_node(&hash).unwrap();
         self.root = node_found;
     }
 
     pub fn load_hex(&mut self, hash: &str) {
-        self.load(&Bytes::from(hex::decode(hash).unwrap()));
+        self.load(&hex::decode(hash).unwrap());
     }
 
     pub fn initialize(&self) {
@@ -73,7 +70,7 @@ where
     }
 
     // encoded, hash
-    fn get_hash(&self, n: &Node) -> Bytes {
+    fn get_hash(&self, n: &Node) -> Vec<u8> {
         self.get_encoded_hash(n).1
     }
 
@@ -88,38 +85,44 @@ where
     }
 
     // encoded, hash
-    fn get_encoded_hash(&self, n: &Node) -> (Bytes, Bytes) {
+    fn get_encoded_hash(&self, n: &Node) -> (Vec<u8>, Vec<u8>) {
         let encoded: Vec<u8> = bincode::serialize(&n).unwrap();
         let hash = self.database.compute_hash(&encoded.as_slice());
-        (Bytes::from(encoded), Bytes::from(hash))
+        (encoded, hash)
     }
 
-    fn write_node(&self, n: &Node) -> Bytes {
+    fn write_node(&self, n: &Node) -> Vec<u8> {
         let (encoded, hash) = self.get_encoded_hash(n);
         self.database.write(&hash, &encoded[..]);
         hash
     }
 
-    fn read_node(&self, key: &Bytes) -> Result<Node, ()> {
+    fn read_node(&self, key: &Vec<u8>) -> Result<Node, ()> {
         let data = self.database.read(key).unwrap();
         let decoded: Node = bincode::deserialize(&data[..]).map_err(|_e| ())?;
         Ok(decoded)
     }
 
-    fn write_value(&self, n: &Value) -> Bytes {
+    fn write_value(&self, n: &Value) -> Vec<u8> {
         let encoded: Vec<u8> = bincode::serialize(&n).unwrap();
         let hash = self.database.compute_hash(&encoded.as_slice());
         self.database.write(&hash, &encoded[..]);
         hash
     }
 
-    fn read_value(&self, key: &Bytes) -> Result<Value, ()> {
+    fn read_value(&self, key: &Vec<u8>) -> Result<Value, ()> {
         let data = self.database.read(key).unwrap();
         let decoded: Value = bincode::deserialize(&data[..]).map_err(|_e| ())?;
         Ok(decoded)
     }
 
-    pub fn do_put(&mut self, key: &Bytes, index: usize, value: &Value, parent: &mut Node) -> Bytes {
+    pub fn do_put(
+        &mut self,
+        key: &Vec<u8>,
+        index: usize,
+        value: &Value,
+        parent: &mut Node,
+    ) -> Vec<u8> {
         let current = &key[index..index + 1];
         debug!(
             "do_put {}  oldone exist {}",
@@ -140,7 +143,6 @@ where
             } else {
                 debug!("create leaf");
                 // create
-                newleaf.address = Bytes::from(current);
             }
 
             // update
@@ -154,7 +156,7 @@ where
                 hex::encode(key)
             );
 
-            parent.children.insert(Bytes::from(current), hash);
+            parent.children.insert(current.to_vec(), hash);
             // update hash, write
             let parenthash = self.write_node(&parent);
             return parenthash;
@@ -169,14 +171,13 @@ where
                 newbranch = node_found;
             } else {
                 debug!("create branch");
-                newbranch.address = Bytes::from(current);
             }
 
             // update children
             let child_hash = self.do_put(&key, next_index, &value, &mut newbranch);
             // upsert
-            debug!("insert child key={}", hex::encode(Bytes::from(current)));
-            parent.children.insert(Bytes::from(current), child_hash);
+            debug!("insert child key={}", hex::encode(&current));
+            parent.children.insert(current.to_vec(), child_hash);
 
             // update hash, write
             let hash = self.write_node(&parent);
@@ -184,14 +185,14 @@ where
         }
     }
 
-    pub fn put(&mut self, key: &Bytes, value: &Value) {
+    pub fn put(&mut self, key: &Vec<u8>, value: &Value) {
         let mut root = self.root.clone();
         let _final_root = self.do_put(&key, 0, &value, &mut root);
         debug!("root children={:?}", root.children);
         self.root = root;
     }
 
-    pub fn do_get(&self, key: &Bytes, index: usize, parent: &Node) -> Result<Bytes, ()> {
+    pub fn do_get(&self, key: &Vec<u8>, index: usize, parent: &Node) -> Result<Vec<u8>, ()> {
         let current = &key[index..index + 1];
         debug!(
             "do_get {}  oldone exist {}",
@@ -208,7 +209,7 @@ where
             if parent.children.contains_key(current) {
                 let childnode = self.read_node(&parent.children[current]).unwrap();
                 debug!("use branch");
-                //let next = Bytes::from(&key[next_index..next_index + 1]);
+                //let next = Vec<u8>::from(&key[next_index..next_index + 1]);
                 return self.do_get(&key, next_index, &childnode);
             } else {
                 Err(())
@@ -216,12 +217,12 @@ where
         }
     }
 
-    pub fn get(&mut self, key: &Bytes) -> Result<Value, ()> {
+    pub fn get(&mut self, key: &Vec<u8>) -> Result<Value, ()> {
         let valuehash = self.do_get(&key, 0, &self.root)?;
         self.read_value(&valuehash)
     }
 
-    pub fn get_roothash(&self) -> Bytes {
+    pub fn get_roothash(&self) -> Vec<u8> {
         self.get_hash(&self.root)
     }
 

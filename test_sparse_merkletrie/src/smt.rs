@@ -4,19 +4,15 @@ written by jongwhan lee
 
 <= for the future =>
 */
-use crate::database::Database;
+use super::database::{Database, MemoryDatabase};
 use failure::Error;
 use serde::Deserialize;
 use serde::Serialize;
-
-pub trait MerkletrieDatabase {
-    fn compute_hash(&self, data: &[u8]) -> Vec<u8>;
-    fn write(&mut self, key: &[u8], data: &[u8]) -> Result<(), Error>;
-    fn read(&self, key: &[u8]) -> Result<Vec<u8>, Error>;
-}
-
+use super::merkletrie_interface::MerkletrieInterface;
+use super::merkletrie_interface::MerkletrieDatabase;
+use std::time::{Duration, Instant};
 #[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq)]
-struct SparseMerkletrie<T>
+pub struct SparseMerkletrie<T>
 where
     T: MerkletrieDatabase,
 {
@@ -25,10 +21,39 @@ where
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq)]
-struct Node {
+pub struct Node {
     pub children: [Option<Vec<u8>>; 2],
     pub value: Vec<u8>,
 }
+
+
+impl<T> MerkletrieInterface for SparseMerkletrie<T>
+where
+    T: MerkletrieDatabase,
+{
+    fn load(&mut self, hash: &[u8]) -> Result<(), Error> {
+        let node_found = self.read_node(&hash)?;
+        self.root = node_found;
+        Ok(())
+    }
+
+    fn put(&mut self, key: &[u8], value: &[u8]) -> Result<(), Error> {
+        let mut output="".to_string();
+        self.put(key, value, &mut output);
+        Ok(())
+    }
+
+    fn get(&mut self, key: &[u8]) -> Result<Vec<u8>, Error> {        
+        let mut output="".to_string();
+        self.get(key, &mut output)
+    }
+
+    fn get_roothash(&self) -> Result<Vec<u8>, Error> {
+        self.get_hash(&self.root)
+    }
+}
+
+
 impl<T> SparseMerkletrie<T>
 where
     T: MerkletrieDatabase,
@@ -40,8 +65,13 @@ where
         }
     }
 
+     // encoded, hash
+     fn get_hash(&self, n: &Node) -> Result<Vec<u8>, Error> {
+        Ok(self.get_encoded_hash(n)?.1)
+    }
+
     // encoded, hash
-    fn get_encoded_hash(&self, n: &Node) -> Result<(Vec<u8>, Vec<u8>), Error> {
+    pub fn get_encoded_hash(&self, n: &Node) -> Result<(Vec<u8>, Vec<u8>), Error> {
         let encoded: Vec<u8> = bincode::serialize(&n)?;
         let hash = self.database.compute_hash(&encoded.as_slice());
         Ok((encoded.to_vec(), hash))
@@ -57,6 +87,12 @@ where
         let data = self.database.read(key)?;
         let decoded: Node = bincode::deserialize(&data[..])?;
         Ok(decoded)
+    }
+
+    pub fn show_root(&self) 
+    {
+        let (encoded,hash)=self.get_encoded_hash(&self.root).expect("compute hash");
+        //println!("hash= {}", hex::encode(&hash));      
     }
 
     pub fn put(&mut self, key: &[u8], value: &[u8], output: &mut String) {
@@ -83,10 +119,10 @@ where
         let is_leaf = 0 == index;
 
         output.push_str(&flag.to_string());
-        println!(
-            "index {} byte {} bit {}  byte_value {:02X} bit {}  flag {}",
-            index, which_byte, index, byte_value, bit, flag
-        );
+        //println!(
+         //   "index {} byte {} bit {}  byte_value {:02X} bit {}  flag {}",
+          //  index, which_byte, index, byte_value, bit, flag
+        //);
 
         if is_leaf {
             let mut newleaf = match &parent.children[flag] {
@@ -147,16 +183,41 @@ where
     }
 }
 
-pub fn sparse_main() {
+
+
+
+pub fn sparse_main2()->Result<(),failure::Error> {
     let database = Database::new("./data");
     let mut a = SparseMerkletrie::new(database);
     let mut output = "".to_string();
-    let key=vec![0xF1, 0xab, 0xc3];
-    a.put(&key, &vec![0x11, 0xa2, 0xf3], &mut output);
+    let key=hex::decode("f1ab01")?;
+    a.put(&key, & hex::decode("11a2f3")?, &mut output);
     println!("{}", output);
-    println!("Hello, world!========================");
     let mut output2 = "".to_string();
-    let read=a.get(&key, &mut output2).expect("read");
+    let read=a.get(&key, &mut output2)?;
     println!("{}", output);
     println!("read= {}", hex::encode(&read));
+    Ok(())
+}
+
+
+pub fn sparse_main()->Result<(),failure::Error> {
+    //let database= MemoryDatabase::default();
+    //let mut smt = SparseMerkletrie::new(MemoryDatabase::default());
+    let database = Database::new("./data");
+    let mut smt = SparseMerkletrie::new(database.clone());
+    let mut i:i32=0;
+    let n= 1000;
+    let now = Instant::now();
+    for i in 0..n {
+        let b = i as i32;
+        let value= b.to_le_bytes();
+        let key= database.compute_hash(&value);
+    
+        let mut output = "".to_string();
+       // println!("{} {}", i, hex::encode(&key));
+        smt.put(&key, &value, &mut output);
+    }
+    println!("{}", now.elapsed().as_millis());
+    Ok(())
 }

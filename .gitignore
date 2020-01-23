@@ -16,3 +16,6 @@ neon_electron/electron-app/electron-app-win32-x64/
 .DS_Store
 
 e/
+test_c/apple.o
+test_c_binding/hi
+test_c_binding/hi

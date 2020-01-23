@@ -1,5 +1,6 @@
-use super::smt::MerkletrieDatabase;
-use blake2::{Blake2b, Digest};
+use super::merkletrie_interface::MerkletrieDatabase;
+use blake2::{Blake2b, Blake2s, Digest};
+use std::collections::HashMap;
 use failure::Error;
 use rocksdb::DB;
 use std::sync::{Arc, Mutex};
@@ -14,7 +15,7 @@ pub struct Database {
 
 impl MerkletrieDatabase for Database {
     fn compute_hash(&self, data: &[u8]) -> Vec<u8> {
-        let mut hasher = Blake2b::new();
+        let mut hasher = Blake2s::new();
         hasher.input(data);
         hasher.result().to_vec()
     }
@@ -132,4 +133,27 @@ mod tests {
 
     #[test]
     fn check_read_string() {}
+}
+
+
+
+
+#[derive(Default)]
+pub struct MemoryDatabase {
+    nodes: HashMap<Vec<u8>, Vec<u8>>,
+}
+
+impl MerkletrieDatabase for MemoryDatabase {
+    fn compute_hash(&self, data: &[u8]) -> Vec<u8> {
+        let mut hasher = Blake2b::new();
+        hasher.input(data);
+        hasher.result().to_vec()
+    }
+    fn write(&mut self, key: &[u8], data: &[u8]) -> Result<(), Error> {
+        self.nodes.insert(key.to_vec(), data.to_vec());
+        Ok(())
+    }
+    fn read(&self, key: &[u8]) -> Result<Vec<u8>, Error> {
+        Ok(self.nodes.get(key).unwrap()[..].into())
+    }
 }
