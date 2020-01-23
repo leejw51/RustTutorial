@@ -288,6 +288,6 @@ pub fn patricia_main()->Result<(),failure::Error> {
        // println!("{} {}", i, hex::encode(&key));
         smt.put(&key, &value);
     }
-    println!("{}", now.elapsed().as_millis());
+    println!("patricia merkletrie= {}", now.elapsed().as_millis());
     Ok(())
 }

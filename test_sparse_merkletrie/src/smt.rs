@@ -218,6 +218,6 @@ pub fn sparse_main()->Result<(),failure::Error> {
        // println!("{} {}", i, hex::encode(&key));
         smt.put(&key, &value, &mut output);
     }
-    println!("{}", now.elapsed().as_millis());
+    println!("sparse merkletrie= {}", now.elapsed().as_millis());
     Ok(())
 }
