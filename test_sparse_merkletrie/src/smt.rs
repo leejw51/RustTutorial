@@ -202,10 +202,10 @@ pub fn sparse_main2()->Result<(),failure::Error> {
 
 
 pub fn sparse_main()->Result<(),failure::Error> {
-    //let database= MemoryDatabase::default();
-    //let mut smt = SparseMerkletrie::new(MemoryDatabase::default());
-    let database = Database::new("./data");
-    let mut smt = SparseMerkletrie::new(database.clone());
+    let database= MemoryDatabase::default();
+    let mut smt = SparseMerkletrie::new(MemoryDatabase::default());
+    //let database = Database::new("./data");
+    //let mut smt = SparseMerkletrie::new(database.clone());
     let mut i:i32=0;
     let n= 1000;
     let now = Instant::now();

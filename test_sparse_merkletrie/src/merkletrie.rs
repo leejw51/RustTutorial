@@ -272,10 +272,10 @@ mod tests {
 
 
 pub fn patricia_main()->Result<(),failure::Error> {
-    let database = Database::new("./data");
-    let mut smt = Merkletrie::new(database.clone());
-    //let database = MemoryDatabase::default();
-    //let mut smt = Merkletrie::new(MemoryDatabase::default());
+    //let database = Database::new("./data");
+    //let mut smt = Merkletrie::new(database.clone());
+    let database = MemoryDatabase::default();
+    let mut smt = Merkletrie::new(MemoryDatabase::default());
     let mut i:i32=0;
     let n= 1000;
     let now = Instant::now();

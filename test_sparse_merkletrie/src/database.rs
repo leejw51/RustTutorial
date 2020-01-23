@@ -145,7 +145,7 @@ pub struct MemoryDatabase {
 
 impl MerkletrieDatabase for MemoryDatabase {
     fn compute_hash(&self, data: &[u8]) -> Vec<u8> {
-        let mut hasher = Blake2b::new();
+        let mut hasher = Blake2s::new();
         hasher.input(data);
         hasher.result().to_vec()
     }
