@@ -96,8 +96,7 @@ where
     pub fn convert_to_bits(&self, key: &[u8]) -> Vec<u8> {
         let mut index = 8 * key.len() as i32 - 1;
         let mut ret: Vec<u8> = vec![];
-        while index >= 0 {
-            println!("{}", index);
+        while index >= 0 {            
             let which_byte = key.len() as i32 - 1 - index / 8;
             let byte_value = key[which_byte as usize];
             let bit = index % 8;
@@ -117,14 +116,12 @@ where
     pub fn put(&mut self, key: &[u8], value: &[u8], output: &mut String) {
         let mut root = self.root.clone();
         let bits = self.convert_to_bits(key);
-        println!("{:?}", bits);
-        self.show_bits(&bits);
         let roothash = self
             .do_put(&bits, value, 8 * key.len() as i32 - 1, output, &mut root)
             .expect("ok");
-        //  let (encoded,hash)=self.get_encoded_hash(&root).expect("compute hash");
-        // assert!(hash== roothash);
-        // self.root = root;
+         let (encoded,hash)=self.get_encoded_hash(&root).expect("compute hash");
+         //assert!(hash== roothash);
+         //self.root = root;
     }
 
     pub fn do_put(
@@ -136,11 +133,10 @@ where
         parent: &mut Node,
     ) -> Result<Vec<u8>, Error> {
         let mut index= key_bits.len();
-        println!("index= {}", index);
-
+       
         let mut ret = Node::default();
         ret.value= value.to_vec();
-        self.write_node(&ret);
+       // self.write_node(&ret);
         
         
         Ok(vec![])
@@ -169,7 +165,7 @@ pub fn dynamic_sparse_main() -> Result<(), failure::Error> {
     //let database = Database::new("./data");
     //let mut smt = SparseMerkletrie::new(database.clone());
     let mut i: i32 = 0;
-    let n = 1000;
+    let n = 1;
     let now = Instant::now();
     for i in 0..n {
         let b = i as i32;
@@ -178,8 +174,7 @@ pub fn dynamic_sparse_main() -> Result<(), failure::Error> {
         let key = hex::decode("f081").unwrap();
 
         let mut output = "".to_string();
-        println!("{} {} ( {} )", i, hex::encode(&key), key.len());
-
+       
         smt.put(&key, &value, &mut output);
     }
     println!("sparse merkletrie= {}", now.elapsed().as_millis());
