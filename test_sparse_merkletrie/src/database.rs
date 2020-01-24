@@ -1,8 +1,8 @@
 use super::merkletrie_interface::MerkletrieDatabase;
 use blake2::{Blake2b, Blake2s, Digest};
-use std::collections::HashMap;
 use failure::Error;
 use rocksdb::DB;
+use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
 type DBShared = Arc<Mutex<DB>>;
@@ -134,9 +134,6 @@ mod tests {
     #[test]
     fn check_read_string() {}
 }
-
-
-
 
 #[derive(Default)]
 pub struct MemoryDatabase {
