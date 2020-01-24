@@ -140,6 +140,26 @@ where
         output: &mut String,
         parent: &mut Node,
     ) -> Result<Vec<u8>, Error> {
+
+        // compare & find common branch
+        // split
+        let mut i = key_bits.len();
+        for (key,value) in &parent.children {
+
+            let mut j = 0;
+            for j in 0.. key.len() {
+                if j>=key_bits.len() {
+                    break;
+                }
+                if key_bits[j] != key[j]  {
+                    break;
+                }
+            }
+            println!("common j={}", j);
+            // split in j
+
+        }
+        /*
         let mut index= key_bits.len();
         let mut new_leaf = Node::default();
         new_leaf.value= value.to_vec();
@@ -152,7 +172,7 @@ where
             }
             
             index= index -1;
-        }     
+        } */    
         
         
         Ok(vec![])
