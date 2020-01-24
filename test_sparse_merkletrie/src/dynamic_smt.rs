@@ -96,7 +96,7 @@ where
     pub fn convert_to_bits(&self, key: &[u8]) -> Vec<u8> {
         let mut index = 8 * key.len() as i32 - 1;
         let mut ret: Vec<u8> = vec![];
-        while index >= 0 {            
+        while index >= 0 {
             let which_byte = key.len() as i32 - 1 - index / 8;
             let byte_value = key[which_byte as usize];
             let bit = index % 8;
@@ -114,9 +114,8 @@ where
         println!("");
     }
     pub fn get_bits(&self, bits: &[u8]) -> String {
-        let mut ret= "".to_string();
+        let mut ret = "".to_string();
         for i in 0..bits.len() {
-            
             ret.push_str(&format!("{}", bits[i]));
         }
         ret
@@ -125,57 +124,55 @@ where
         let mut root = self.root.clone();
         let bits = self.convert_to_bits(key);
         let roothash = self
-            .do_put(&bits, value, 8 * key.len() as i32 - 1, output, &mut root)
+            .do_put(&bits, value,  &mut root)
             .expect("ok");
-         let (encoded,hash)=self.get_encoded_hash(&root).expect("compute hash");
-         //assert!(hash== roothash);
-         //self.root = root;
+        let (encoded, hash) = self.get_encoded_hash(&root).expect("compute hash");
+        //assert!(hash== roothash);
+        //self.root = root;
     }
 
     pub fn do_put(
         &mut self,
         key_bits: &[u8],
-        value: &[u8],
-        index: i32,
-        output: &mut String,
+        value: &[u8],        
         parent: &mut Node,
     ) -> Result<Vec<u8>, Error> {
-
+        let mut is_leaf = true;
         // compare & find common branch
         // split
         let mut i = key_bits.len();
-        for (key,value) in &parent.children {
-
-            let mut j = 0;
-            for j in 0.. key.len() {
-                if j>=key_bits.len() {
+        let mut which_child: Vec<u8>=vec![];
+        let mut which_bit: i32= 0;
+        for (key, value) in &parent.children {
+            let mut j :i32= 0;
+            for j in 0..key.len() {
+                if j >= key_bits.len() {
                     break;
                 }
-                if key_bits[j] != key[j]  {
+                if key_bits[j] != key[j] {
+                    is_leaf = false; // this is branch
+                    which_child= key.to_vec();
+                    which_bit=j as i32;
                     break;
                 }
             }
             println!("common j={}", j);
             // split in j
-
         }
-        /*
-        let mut index= key_bits.len();
-        let mut new_leaf = Node::default();
-        new_leaf.value= value.to_vec();
-        let hash= self.write_node(&new_leaf).unwrap();
-        parent.children.insert(key_bits.to_vec(), hash);        
-        while index>=0 {
-            println!("key_bits={} index={}",self.get_bits(key_bits), index);
-            if 0==index {
-                break;
-            }
+
+        if is_leaf {
+            let mut index = key_bits.len();
+            let mut new_leaf = Node::default();
+            new_leaf.value = value.to_vec();
+            let hash = self.write_node(&new_leaf).unwrap();
+            parent.children.insert(key_bits.to_vec(), hash);
+            let parenthash = self.write_node(&parent)?;
+            Ok(parenthash)
+        } else {
+            let mut new_branch = Node::default();
             
-            index= index -1;
-        } */    
-        
-        
-        Ok(vec![])
+            Ok(vec![])
+        }
     }
 
     pub fn get(&mut self, key: &[u8], output: &mut String) -> Result<Vec<u8>, Error> {
@@ -188,7 +185,7 @@ where
         index: i32,
         output: &mut String,
         parent: &Node,
-    ) -> Result<Vec<u8>, Error> {    
+    ) -> Result<Vec<u8>, Error> {
         Ok(vec![])
     }
 }
@@ -208,7 +205,7 @@ pub fn dynamic_sparse_main() -> Result<(), failure::Error> {
         let value = b.to_le_bytes();
         //let key= database.compute_hash(&value);
         let key = hex::decode("f081").unwrap();
-        let mut output = "".to_string();       
+        let mut output = "".to_string();
         smt.put(&key, &value, &mut output);
     }
     println!("sparse merkletrie= {}", now.elapsed().as_millis());
