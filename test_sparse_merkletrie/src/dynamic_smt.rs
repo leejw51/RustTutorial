@@ -113,6 +113,14 @@ where
         }
         println!("");
     }
+    pub fn get_bits(&self, bits: &[u8]) -> String {
+        let mut ret= "".to_string();
+        for i in 0..bits.len() {
+            
+            ret.push_str(&format!("{}", bits[i]));
+        }
+        ret
+    }
     pub fn put(&mut self, key: &[u8], value: &[u8], output: &mut String) {
         let mut root = self.root.clone();
         let bits = self.convert_to_bits(key);
@@ -133,10 +141,18 @@ where
         parent: &mut Node,
     ) -> Result<Vec<u8>, Error> {
         let mut index= key_bits.len();
-       
-        let mut ret = Node::default();
-        ret.value= value.to_vec();
-       // self.write_node(&ret);
+        let mut new_leaf = Node::default();
+        new_leaf.value= value.to_vec();
+        let hash= self.write_node(&new_leaf).unwrap();
+        parent.children.insert(key_bits.to_vec(), hash);        
+        while index>=0 {
+            println!("key_bits={} index={}",self.get_bits(key_bits), index);
+            if 0==index {
+                break;
+            }
+            
+            index= index -1;
+        }     
         
         
         Ok(vec![])
@@ -152,7 +168,7 @@ where
         index: i32,
         output: &mut String,
         parent: &Node,
-    ) -> Result<Vec<u8>, Error> {
+    ) -> Result<Vec<u8>, Error> {    
         Ok(vec![])
     }
 }
@@ -172,9 +188,7 @@ pub fn dynamic_sparse_main() -> Result<(), failure::Error> {
         let value = b.to_le_bytes();
         //let key= database.compute_hash(&value);
         let key = hex::decode("f081").unwrap();
-
-        let mut output = "".to_string();
-       
+        let mut output = "".to_string();       
         smt.put(&key, &value, &mut output);
     }
     println!("sparse merkletrie= {}", now.elapsed().as_millis());
