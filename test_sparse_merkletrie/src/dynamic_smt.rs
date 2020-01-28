@@ -1,15 +1,15 @@
-use bitvec::prelude::*;
 use super::database::{Database, MemoryDatabase};
 use super::merkletrie_interface::MerkletrieDatabase;
 use super::merkletrie_interface::MerkletrieInterface;
+use bitvec::prelude::*;
+use bitvec::prelude::*;
+use bitvec::*;
 use failure::Error;
 use serde::Deserialize;
 use serde::Serialize;
 use std::collections::BTreeMap;
 use std::time::{Duration, Instant};
-use bitvec::*;
-use bitvec::prelude::*;
-type  SMT_BYTES=BitVec<Msb0,u8>; // big endian
+type SMT_BYTES = BitVec<Msb0, u8>; // big endian
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq)]
 pub struct SparseMerkletrie<T>
@@ -94,35 +94,33 @@ where
 
     pub fn put(&mut self, key: &[u8], value: &[u8]) {
         let mut root = self.root.clone();
-        let bits =SMT_BYTES::from_slice(key);
-        let roothash = self
-            .do_put(&bits, value,  &mut root)
-            .expect("ok");
-        let (encoded, hash) = self.get_encoded_hash(&root).expect("compute hash");        
+        let bits = SMT_BYTES::from_slice(key);
+        let roothash = self.do_put(&bits, value, &mut root).expect("ok");
+        let (encoded, hash) = self.get_encoded_hash(&root).expect("compute hash");
         //assert!(hash== roothash);
         self.root = root;
     }
 
     pub fn do_put(
         &mut self,
-        key_bits:& SMT_BYTES,
-        value: &[u8],        
+        key_bits: &SMT_BYTES,
+        value: &[u8],
         parent: &mut Node,
     ) -> Result<Vec<u8>, Error> {
-        let mut is_leaf = true;        
+        let mut is_leaf = true;
 
         if is_leaf {
             let mut index = key_bits.len();
             let mut new_leaf = Node::default();
             new_leaf.value = value.to_vec();
             let hash = self.write_node(&new_leaf).unwrap();
-            parent.children.insert(key_bits.to_vec(), hash);
-            println!("add leaf key={:?}", &key_bits);
+            println!("add leaf key={:?} hash={}", &key_bits, hex::encode(&hash));
+            parent.children.insert(key_bits.clone(), hash);
             let parenthash = self.write_node(&parent)?;
             Ok(parenthash)
         } else {
             println!("split");
-            let mut new_branch = Node::default();            
+            let mut new_branch = Node::default();
             Ok(vec![])
         }
     }
@@ -141,8 +139,6 @@ where
         Ok(vec![])
     }
 }
-
-
 
 pub fn dynamic_sparse_main2() -> Result<(), failure::Error> {
     let database = MemoryDatabase::default();
@@ -164,11 +160,10 @@ pub fn dynamic_sparse_main2() -> Result<(), failure::Error> {
     Ok(())
 }
 
-
 pub fn dynamic_sparse_main() -> Result<(), failure::Error> {
     println!("dynamic_sparse_main");
     let database = MemoryDatabase::default();
-    let mut smt = SparseMerkletrie::new(MemoryDatabase::default());    
-    smt.put(&hex::decode("ff01")?, &hex::decode("01")?);    
+    let mut smt = SparseMerkletrie::new(MemoryDatabase::default());
+    smt.put(&hex::decode("ff01")?, &hex::decode("01")?);
     Ok(())
 }
