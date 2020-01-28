@@ -1,9 +1,4 @@
-/*
-written by jongwhan lee
-@2020.01.19
-
-<= for the future =>
-*/
+use bitvec::prelude::*;
 use super::database::{Database, MemoryDatabase};
 use super::merkletrie_interface::MerkletrieDatabase;
 use super::merkletrie_interface::MerkletrieInterface;
@@ -39,7 +34,7 @@ where
 
     fn put(&mut self, key: &[u8], value: &[u8]) -> Result<(), Error> {
         let mut output = "".to_string();
-        self.put(key, value, &mut output);
+        self.put(key, value);
         Ok(())
     }
 
@@ -120,15 +115,15 @@ where
         }
         ret
     }
-    pub fn put(&mut self, key: &[u8], value: &[u8], output: &mut String) {
+    pub fn put(&mut self, key: &[u8], value: &[u8]) {
         let mut root = self.root.clone();
         let bits = self.convert_to_bits(key);
         let roothash = self
             .do_put(&bits, value,  &mut root)
             .expect("ok");
-        let (encoded, hash) = self.get_encoded_hash(&root).expect("compute hash");
+        let (encoded, hash) = self.get_encoded_hash(&root).expect("compute hash");        
         //assert!(hash== roothash);
-        //self.root = root;
+        self.root = root;
     }
 
     pub fn do_put(
@@ -137,28 +132,7 @@ where
         value: &[u8],        
         parent: &mut Node,
     ) -> Result<Vec<u8>, Error> {
-        let mut is_leaf = true;
-        // compare & find common branch
-        // split
-        let mut i = key_bits.len();
-        let mut which_child: Vec<u8>=vec![];
-        let mut which_bit: i32= 0;
-        for (key, value) in &parent.children {
-            let mut j :i32= 0;
-            for j in 0..key.len() {
-                if j >= key_bits.len() {
-                    break;
-                }
-                if key_bits[j] != key[j] {
-                    is_leaf = false; // this is branch
-                    which_child= key.to_vec();
-                    which_bit=j as i32;
-                    break;
-                }
-            }
-            println!("common j={}", j);
-            // split in j
-        }
+        let mut is_leaf = true;        
 
         if is_leaf {
             let mut index = key_bits.len();
@@ -166,11 +140,12 @@ where
             new_leaf.value = value.to_vec();
             let hash = self.write_node(&new_leaf).unwrap();
             parent.children.insert(key_bits.to_vec(), hash);
+            println!("add leaf key={}", self.get_bits(&key_bits));
             let parenthash = self.write_node(&parent)?;
             Ok(parenthash)
         } else {
-            let mut new_branch = Node::default();
-            
+            println!("split");
+            let mut new_branch = Node::default();            
             Ok(vec![])
         }
     }
@@ -190,9 +165,9 @@ where
     }
 }
 
-use bitvec::prelude::*;
 
-pub fn dynamic_sparse_main() -> Result<(), failure::Error> {
+
+pub fn dynamic_sparse_main2() -> Result<(), failure::Error> {
     let database = MemoryDatabase::default();
     let mut smt = SparseMerkletrie::new(MemoryDatabase::default());
     //let database = Database::new("./data");
@@ -206,8 +181,17 @@ pub fn dynamic_sparse_main() -> Result<(), failure::Error> {
         //let key= database.compute_hash(&value);
         let key = hex::decode("f081").unwrap();
         let mut output = "".to_string();
-        smt.put(&key, &value, &mut output);
+        smt.put(&key, &value);
     }
     println!("sparse merkletrie= {}", now.elapsed().as_millis());
+    Ok(())
+}
+
+
+pub fn dynamic_sparse_main() -> Result<(), failure::Error> {
+    println!("dynamic_sparse_main");
+    let database = MemoryDatabase::default();
+    let mut smt = SparseMerkletrie::new(MemoryDatabase::default());    
+    smt.put(&hex::decode("ff01")?, &hex::decode("01")?);    
     Ok(())
 }

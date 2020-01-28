@@ -9,7 +9,8 @@ mod smt;
 use hashtree::starling_main;
 use merkletrie::{patricia_main, patricia_order};
 use smt::{sparse_main, sparse_order};
-
+use bitvec::*;
+use bitvec::prelude::*;
 fn test_order() {
     sparse_order();
     patricia_order();
@@ -19,6 +20,25 @@ fn benchmark() {
     patricia_main();
     starling_main();
 }
+fn binary_test() {
+    println!("-----------");
+    //big endian
+    let mut bv = bitvec![Msb0, u8; 0,0,0, 1, 0, 1];
+    for i in 0..512 {
+    bv.push(true);
+    }
+    println!("0 flag={}", bv[3]);
+
+    let m= bincode::serialize(&bv).unwrap();
+    let bv2: BitVec<Msb0,u8>= bincode::deserialize(&m).unwrap();
+    let m2= bincode::serialize(&bv2).unwrap();
+    assert!(m==m2);
+    
+    println!("{:?}", bv);
+    println!("{:?}", &bv[0..3]);
+    println!("encoded:{} bytes", m.len());
+}
 pub fn main() {
+
     dynamic_smt::dynamic_sparse_main();
 }
