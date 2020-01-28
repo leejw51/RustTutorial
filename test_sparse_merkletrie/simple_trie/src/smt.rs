@@ -118,10 +118,6 @@ where
         let is_leaf = 0 == index;
 
         output.push_str(&flag.to_string());
-        //println!(
-        //   "index {} byte {} bit {}  byte_value {:02X} bit {}  flag {}",
-        //  index, which_byte, index, byte_value, bit, flag
-        //);
 
         if is_leaf {
             let mut newleaf = match &parent.children[flag] {
@@ -210,7 +206,6 @@ pub fn sparse_main() -> Result<(), failure::Error> {
         let key = database.compute_hash(&value);
 
         let mut output = "".to_string();
-        // println!("{} {}", i, hex::encode(&key));
         smt.put(&key, &value, &mut output);
     }
     println!("sparse merkletrie= {}", now.elapsed().as_millis());

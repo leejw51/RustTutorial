@@ -24,7 +24,6 @@ pub fn starling_main() -> BinaryMerkleTreeResult<()> {
 
         let mut value = vec![0x00; 4];
         key.copy_from_slice(&key2[0..KEY_LEN]);
-        //println!("{} {}", i,hex::encode(&key));
         value.copy_from_slice(&value2[0..4]);
         // Inserting and getting from a tree
         let new_root = tree.insert(root, &mut [key], &[value.clone()]).unwrap();

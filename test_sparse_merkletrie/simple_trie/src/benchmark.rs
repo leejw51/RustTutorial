@@ -21,15 +21,10 @@ fn benchmark() -> Result<(), failure::Error> {
 
 #[allow(dead_code)]
 fn binary_test() -> Result<(), failure::Error> {
-    println!("-----------");
     //big endian
     let mut bv = bitvec![Msb0, u8; 0,0,0, 1, 0, 1];
     for _i in 0..8 {
         bv.push(true);
-    }
-
-    for i in 0..bv.len() {
-        println!("i={} {:?}", i, &bv[0..i]);
     }
 
     let m = bincode::serialize(&bv).unwrap();
@@ -43,7 +38,6 @@ fn binary_test() -> Result<(), failure::Error> {
     Ok(())
 }
 pub fn benchmark_main() -> Result<(), failure::Error> {
-    //binary_test();
     sparse_main()?;
     patricia_main()?;
     starling_main()?;
