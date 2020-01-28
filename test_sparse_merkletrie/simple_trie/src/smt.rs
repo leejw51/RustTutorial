@@ -37,14 +37,12 @@ where
     }
 
     fn put(&mut self, key: &[u8], value: &[u8]) -> Result<(), Error> {
-        let mut output = "".to_string();
-        self.put(key, value, &mut output);
+        self.put(key, value);
         Ok(())
     }
 
     fn get(&mut self, key: &[u8]) -> Result<Vec<u8>, Error> {
-        let mut output = "".to_string();
-        self.get(key, &mut output)
+        self.get(key)
     }
 
     fn get_roothash(&self) -> Result<Vec<u8>, Error> {
@@ -92,10 +90,10 @@ where
         println!("hash= {}", hex::encode(&hash));
     }
 
-    pub fn put(&mut self, key: &[u8], value: &[u8], output: &mut String) {
+    pub fn put(&mut self, key: &[u8], value: &[u8]) {
         let mut root = self.root.clone();
         let roothash = self
-            .do_put(key, value, 8 * key.len() as i32 - 1, output, &mut root)
+            .do_put(key, value, 8 * key.len() as i32 - 1, &mut root)
             .expect("ok");
         let (_, hash) = self.get_encoded_hash(&root).expect("compute hash");
         assert!(hash == roothash);
@@ -107,7 +105,6 @@ where
         key: &[u8],
         value: &[u8],
         index: i32,
-        output: &mut String,
         parent: &mut Node,
     ) -> Result<Vec<u8>, Error> {
         let which_byte = key.len() as i32 - 1 - index / 8;
@@ -116,8 +113,6 @@ where
         let flag_value = byte_value & 1 << bit;
         let flag = if flag_value > 0 { 1 } else { 0 };
         let is_leaf = 0 == index;
-
-        output.push_str(&flag.to_string());
 
         if is_leaf {
             let mut newleaf = match &parent.children[flag] {
@@ -138,24 +133,18 @@ where
                 None => Node::default(),
             };
             // update children
-            let child_hash = self.do_put(key, value, index - 1, output, &mut newbranch)?;
+            let child_hash = self.do_put(key, value, index - 1, &mut newbranch)?;
             parent.children[flag] = Some(child_hash.to_vec());
             let hash = self.write_node(&parent)?;
             Ok(hash)
         }
     }
 
-    pub fn get(&mut self, key: &[u8], output: &mut String) -> Result<Vec<u8>, Error> {
-        self.do_get(&key, 8 * key.len() as i32 - 1, output, &self.root)
+    pub fn get(&mut self, key: &[u8]) -> Result<Vec<u8>, Error> {
+        self.do_get(&key, 8 * key.len() as i32 - 1, &self.root)
     }
 
-    pub fn do_get(
-        &self,
-        key: &[u8],
-        index: i32,
-        output: &mut String,
-        parent: &Node,
-    ) -> Result<Vec<u8>, Error> {
+    pub fn do_get(&self, key: &[u8], index: i32, parent: &Node) -> Result<Vec<u8>, Error> {
         let which_byte = key.len() as i32 - 1 - index / 8;
         let byte_value = key[which_byte as usize];
         let bit = index % 8;
@@ -171,7 +160,7 @@ where
             Ok(found_node.value)
         } else if let Some(hash) = parent.children[flag].as_ref() {
             let childnode = self.read_node(&hash)?;
-            self.do_get(&key, index - 1, output, &childnode)
+            self.do_get(&key, index - 1, &childnode)
         } else {
             Err(format_err!("key doesn't exist"))
         }
@@ -181,13 +170,9 @@ where
 pub fn sparse_main2() -> Result<(), failure::Error> {
     let database = Database::new("./data");
     let mut a = SparseMerkletrie::new(database);
-    let mut output = "".to_string();
     let key = hex::decode("f1ab01")?;
-    a.put(&key, &hex::decode("11a2f3")?, &mut output);
-    println!("{}", output);
-    let mut output2 = "".to_string();
-    let read = a.get(&key, &mut output2)?;
-    println!("{}", output);
+    a.put(&key, &hex::decode("11a2f3")?);
+    let read = a.get(&key)?;
     println!("read= {}", hex::encode(&read));
     Ok(())
 }
@@ -205,8 +190,7 @@ pub fn sparse_main() -> Result<(), failure::Error> {
         let value = b.to_le_bytes();
         let key = database.compute_hash(&value);
 
-        let mut output = "".to_string();
-        smt.put(&key, &value, &mut output);
+        smt.put(&key, &value);
     }
     println!("sparse merkletrie= {}", now.elapsed().as_millis());
     Ok(())
@@ -215,9 +199,8 @@ pub fn sparse_main() -> Result<(), failure::Error> {
 fn test1() -> Result<(), failure::Error> {
     let _database = MemoryDatabase::default();
     let mut smt = SparseMerkletrie::new(MemoryDatabase::default());
-    let mut output = "".to_string();
-    smt.put(&hex::decode("1234")?, &hex::decode("fe2a")?, &mut output);
-    smt.put(&hex::decode("5212")?, &hex::decode("3f4b")?, &mut output);
+    smt.put(&hex::decode("1234")?, &hex::decode("fe2a")?);
+    smt.put(&hex::decode("5212")?, &hex::decode("3f4b")?);
     println!("{}", &hex::encode(&smt.get_roothash()?));
     Ok(())
 }
@@ -225,10 +208,9 @@ fn test1() -> Result<(), failure::Error> {
 fn test2() -> Result<(), failure::Error> {
     let _database = MemoryDatabase::default();
     let mut smt = SparseMerkletrie::new(MemoryDatabase::default());
-    let mut output = "".to_string();
-    smt.put(&hex::decode("5212")?, &hex::decode("3f4b")?, &mut output);
+    smt.put(&hex::decode("5212")?, &hex::decode("3f4b")?);
 
-    smt.put(&hex::decode("1234")?, &hex::decode("fe2a")?, &mut output);
+    smt.put(&hex::decode("1234")?, &hex::decode("fe2a")?);
     println!("{}", &hex::encode(&smt.get_roothash()?));
     Ok(())
 }
