@@ -290,7 +290,7 @@ pub fn dynamic_sparse_main() -> Result<(), failure::Error> {
     //let database = Database::new("./data");
     //let mut smt = SparseMerkletrie::new(database.clone());
     let mut i: i32 = 0;
-    let n = 1000;
+    let n = 50000;
     let now = Instant::now();
     for i in 0..n {
         let b = i as i32;

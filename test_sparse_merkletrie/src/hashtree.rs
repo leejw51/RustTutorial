@@ -6,12 +6,12 @@ use starling::merkle_bit::BinaryMerkleTreeResult;
 use std::time::{Duration, Instant};
 
 pub fn starling_main() -> BinaryMerkleTreeResult<()> {
-    let mut tree: HashTree<[u8; KEY_LEN], Vec<u8>> = HashTree::new(16)?;
+    let mut tree: HashTree<[u8; KEY_LEN], Vec<u8>> = HashTree::new(256)?;
 
     let database = MemoryDatabase::default();
 
     let mut i: i32 = 0;
-    let n = 1000;
+    let n = 50000;
     let now = Instant::now();
     let mut root: Option<&[u8; KEY_LEN]> = None;
     let mut root_value: [u8; KEY_LEN];
