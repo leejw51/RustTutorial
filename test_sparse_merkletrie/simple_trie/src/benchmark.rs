@@ -1,28 +1,35 @@
-use bitvec::prelude::*;
-use bitvec::*;
 use crate::dynamic_smt::dynamic_sparse_main;
 use crate::hashtree::starling_main;
 use crate::merkletrie::{patricia_main, patricia_order};
 use crate::smt::{sparse_main, sparse_order};
-fn test_order() {
-    sparse_order();
-    patricia_order();
+use bitvec::prelude::*;
+
+#[allow(dead_code)]
+fn test_order() -> Result<(), failure::Error> {
+    sparse_order()?;
+    patricia_order()?;
+    Ok(())
 }
-fn benchmark() {
-    sparse_main();
-    patricia_main();
-    starling_main();
+
+#[allow(dead_code)]
+fn benchmark() -> Result<(), failure::Error> {
+    sparse_main()?;
+    patricia_main()?;
+    starling_main()?;
+    Ok(())
 }
-fn binary_test() {
+
+#[allow(dead_code)]
+fn binary_test() -> Result<(), failure::Error> {
     println!("-----------");
     //big endian
     let mut bv = bitvec![Msb0, u8; 0,0,0, 1, 0, 1];
-    for i in 0..8 {
+    for _i in 0..8 {
         bv.push(true);
     }
 
-    for i in 0.. bv.len() {
-        println!("i={} {:?}",i,   &bv[0..i]);
+    for i in 0..bv.len() {
+        println!("i={} {:?}", i, &bv[0..i]);
     }
 
     let m = bincode::serialize(&bv).unwrap();
@@ -33,11 +40,13 @@ fn binary_test() {
     println!("{:?}", bv);
     println!("{:?}", &bv[0..3]);
     println!("encoded:{} bytes", m.len());
+    Ok(())
 }
-pub fn benchmark_main() {
+pub fn benchmark_main() -> Result<(), failure::Error> {
     //binary_test();
-    sparse_main();
-    patricia_main();
-    starling_main();
-    dynamic_sparse_main();
+    sparse_main()?;
+    patricia_main()?;
+    starling_main()?;
+    dynamic_sparse_main()?;
+    Ok(())
 }

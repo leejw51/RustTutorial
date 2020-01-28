@@ -3,14 +3,14 @@ byte merkletrie
 written by Jongwhan Lee
 */
 
-use super::database::{Database, MemoryDatabase};
+use super::database::MemoryDatabase;
 use super::merkletrie_interface::{MerkletrieDatabase, MerkletrieInterface};
 use failure::Error;
 use log::debug;
 use serde::Deserialize;
 use serde::Serialize;
 use std::collections::BTreeMap;
-use std::time::{Duration, Instant};
+use std::time::Instant;
 #[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq)]
 pub struct Node {
     pub children: BTreeMap<Vec<u8>, Vec<u8>>, // key: address, value: Node Hash
@@ -123,15 +123,11 @@ where
         let is_leaf = key.len() == next_index;
 
         if is_leaf {
-            use super::database::Database;
             let mut newleaf = if parent.children.contains_key(current) {
                 let hash_found = &parent.children[current];
                 self.read_node(&hash_found)?
             } else {
-                let mut ret = Node::default();
-                // create
-
-                ret
+                Node::default()
             };
 
             // update
@@ -149,8 +145,7 @@ where
                 let hash_found = &parent.children[current];
                 self.read_node(&hash_found)?
             } else {
-                let mut ret = Node::default();
-                ret
+                Node::default()
             };
 
             // update children
@@ -274,7 +269,7 @@ pub fn patricia_main() -> Result<(), failure::Error> {
     //let mut smt = Merkletrie::new(database.clone());
     let database = MemoryDatabase::default();
     let mut smt = Merkletrie::new(MemoryDatabase::default());
-    let mut i: i32 = 0;
+
     let n = 1000;
     let now = Instant::now();
     for i in 0..n {
@@ -282,37 +277,36 @@ pub fn patricia_main() -> Result<(), failure::Error> {
         let value = b.to_le_bytes();
         let key = database.compute_hash(&value);
 
-        let mut output = "".to_string();
         // println!("{} {}", i, hex::encode(&key));
-        smt.put(&key, &value);
+        smt.put(&key, &value)?;
     }
     println!("patricia merkletrie= {}", now.elapsed().as_millis());
     Ok(())
 }
 
 fn test1() -> Result<(), failure::Error> {
-    let database = MemoryDatabase::default();
+    let _database = MemoryDatabase::default();
     let mut smt = Merkletrie::new(MemoryDatabase::default());
-    let mut output = "".to_string();
-    smt.put(&hex::decode("1234")?, &hex::decode("fe2a")?);
-    smt.put(&hex::decode("5212")?, &hex::decode("3f4b")?);
+
+    smt.put(&hex::decode("1234")?, &hex::decode("fe2a")?)?;
+    smt.put(&hex::decode("5212")?, &hex::decode("3f4b")?)?;
     println!("{}", &hex::encode(&smt.get_roothash()?));
     Ok(())
 }
 
 fn test2() -> Result<(), failure::Error> {
-    let database = MemoryDatabase::default();
+    let _database = MemoryDatabase::default();
     let mut smt = Merkletrie::new(MemoryDatabase::default());
-    let mut output = "".to_string();
-    smt.put(&hex::decode("5212")?, &hex::decode("3f4b")?);
 
-    smt.put(&hex::decode("1234")?, &hex::decode("fe2a")?);
+    smt.put(&hex::decode("5212")?, &hex::decode("3f4b")?)?;
+
+    smt.put(&hex::decode("1234")?, &hex::decode("fe2a")?)?;
     println!("{}", &hex::encode(&smt.get_roothash()?));
     Ok(())
 }
 
 pub fn patricia_order() -> Result<(), failure::Error> {
-    test1();
-    test2();
+    test1()?;
+    test2()?;
     Ok(())
 }

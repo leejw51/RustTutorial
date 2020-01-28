@@ -10,7 +10,7 @@ use super::merkletrie_interface::MerkletrieInterface;
 use failure::Error;
 use serde::Deserialize;
 use serde::Serialize;
-use std::time::{Duration, Instant};
+use std::time::Instant;
 #[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq)]
 pub struct SparseMerkletrie<T>
 where
@@ -88,8 +88,8 @@ where
     }
 
     pub fn show_root(&self) {
-        let (encoded, hash) = self.get_encoded_hash(&self.root).expect("compute hash");
-        //println!("hash= {}", hex::encode(&hash));
+        let (_, hash) = self.get_encoded_hash(&self.root).expect("compute hash");
+        println!("hash= {}", hex::encode(&hash));
     }
 
     pub fn put(&mut self, key: &[u8], value: &[u8], output: &mut String) {
@@ -97,7 +97,7 @@ where
         let roothash = self
             .do_put(key, value, 8 * key.len() as i32 - 1, output, &mut root)
             .expect("ok");
-        let (encoded, hash) = self.get_encoded_hash(&root).expect("compute hash");
+        let (_, hash) = self.get_encoded_hash(&root).expect("compute hash");
         assert!(hash == roothash);
         self.root = root;
     }
@@ -126,11 +126,7 @@ where
         if is_leaf {
             let mut newleaf = match &parent.children[flag] {
                 Some(hash_found) => self.read_node(&hash_found)?,
-                None => {
-                    let mut ret = Node::default();
-                    // create
-                    ret
-                }
+                None => Node::default(),
             };
             newleaf.value = value.to_vec();
             // update hash write
@@ -143,11 +139,7 @@ where
         } else {
             let mut newbranch = match &parent.children[flag] {
                 Some(hash_found) => self.read_node(&hash_found)?,
-                None => {
-                    let mut ret = Node::default();
-                    // create
-                    ret
-                }
+                None => Node::default(),
             };
             // update children
             let child_hash = self.do_put(key, value, index - 1, output, &mut newbranch)?;
@@ -209,7 +201,7 @@ pub fn sparse_main() -> Result<(), failure::Error> {
     let mut smt = SparseMerkletrie::new(MemoryDatabase::default());
     //let database = Database::new("./data");
     //let mut smt = SparseMerkletrie::new(database.clone());
-    let mut i: i32 = 0;
+
     let n = 1000;
     let now = Instant::now();
     for i in 0..n {
@@ -226,7 +218,7 @@ pub fn sparse_main() -> Result<(), failure::Error> {
 }
 
 fn test1() -> Result<(), failure::Error> {
-    let database = MemoryDatabase::default();
+    let _database = MemoryDatabase::default();
     let mut smt = SparseMerkletrie::new(MemoryDatabase::default());
     let mut output = "".to_string();
     smt.put(&hex::decode("1234")?, &hex::decode("fe2a")?, &mut output);
@@ -236,7 +228,7 @@ fn test1() -> Result<(), failure::Error> {
 }
 
 fn test2() -> Result<(), failure::Error> {
-    let database = MemoryDatabase::default();
+    let _database = MemoryDatabase::default();
     let mut smt = SparseMerkletrie::new(MemoryDatabase::default());
     let mut output = "".to_string();
     smt.put(&hex::decode("5212")?, &hex::decode("3f4b")?, &mut output);
@@ -246,7 +238,7 @@ fn test2() -> Result<(), failure::Error> {
     Ok(())
 }
 pub fn sparse_order() -> Result<(), failure::Error> {
-    test1();
-    test2();
+    test1()?;
+    test2()?;
     Ok(())
 }

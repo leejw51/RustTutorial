@@ -1,5 +1,5 @@
 use super::merkletrie_interface::MerkletrieDatabase;
-use blake2::{Blake2b, Blake2s, Digest};
+use blake2::{Blake2s, Digest};
 use failure::Error;
 use rocksdb::DB;
 use std::collections::HashMap;
