@@ -24,10 +24,13 @@ fn binary_test() {
     println!("-----------");
     //big endian
     let mut bv = bitvec![Msb0, u8; 0,0,0, 1, 0, 1];
-    for i in 0..512 {
+    for i in 0..8 {
         bv.push(true);
     }
-    println!("0 flag={}", bv[3]);
+
+    for i in 0.. bv.len() {
+        println!("i={} {:?}",i,   &bv[0..i]);
+    }
 
     let m = bincode::serialize(&bv).unwrap();
     let bv2: BitVec<Msb0, u8> = bincode::deserialize(&m).unwrap();
@@ -40,5 +43,8 @@ fn binary_test() {
 }
 pub fn main() {
     //binary_test();
+    sparse_main();
+    patricia_main();
+    starling_main();
     dynamic_smt::dynamic_sparse_main();
 }

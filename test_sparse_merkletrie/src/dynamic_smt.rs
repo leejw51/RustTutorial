@@ -10,6 +10,7 @@ use serde::Serialize;
 use std::collections::BTreeMap;
 use std::time::{Duration, Instant};
 type SMT_BYTES = BitVec<Msb0, u8>; // big endian
+type SMT_SLICE = BitSlice<Msb0, u8>; // big endian
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq)]
 pub struct SparseMerkletrie<T>
@@ -89,7 +90,7 @@ where
 
     pub fn show_root(&self) {
         let (encoded, hash) = self.get_encoded_hash(&self.root).expect("compute hash");
-        //println!("hash= {}", hex::encode(&hash));
+        println!("hash= {}", hex::encode(&hash));
     }
 
     pub fn put(&mut self, key: &[u8], value: &[u8]) {
@@ -101,27 +102,107 @@ where
         self.root = root;
     }
 
+    fn get_common(&self,src:&SMT_SLICE, src2: &SMT_SLICE)-> usize {
+        let mut n= src.len();
+        if src2.len() < n {
+            n= src2.len();
+        }
+        let i=0 as usize;
+        for i in 0.. n {
+            if src[i] !=src2[i]  {
+                return i;
+            }
+        }
+        0 as usize
+    }
     pub fn do_put(
         &mut self,
         key_bits: &SMT_BYTES,
         value: &[u8],
         parent: &mut Node,
     ) -> Result<Vec<u8>, Error> {
-        let mut is_leaf = true;
+        
+        let mut i: usize= key_bits.len();
+        let mut common: usize=0;
+        let mut oldbranch : SMT_BYTES= SMT_BYTES::default();
 
-        if is_leaf {
+        // update 
+        if parent.children.contains_key(key_bits) {            
+            let oldhash=parent.children[key_bits].clone();
+            let mut oldnode= self.read_node(&oldhash)?;
+            oldnode.value= value.to_vec();
+            let hash = self.write_node(&oldnode)?;            
+            parent.children.insert(key_bits.clone(), hash);
+            let parenthash = self.write_node(&parent)?;
+            return Ok(parenthash);
+        }
+
+        // find common key
+        while i>=0 {
+            let key= &key_bits[0..i];
+            for (k, d) in &parent.children {
+                common=self.get_common(&key, &k);
+                if common>0 {
+                    //println!("found common {}",common);
+                    oldbranch= k.to_vec();
+                    break;
+                }
+            }
+            if common >0 {
+                break;
+            }
+            //process            
+            //println!("i={} {:?}", i,key);            
+            if 0==i {
+                break;
+            }
+            else {
+                i=i-1;
+            }
+        }
+        //0(includiing) ~ common(excluding)
+        let mut is_leaf = 0==common;
+        //println!("common={}", common);
+    
+      if is_leaf {
             let mut index = key_bits.len();
             let mut new_leaf = Node::default();
             new_leaf.value = value.to_vec();
-            let hash = self.write_node(&new_leaf).unwrap();
-            println!("add leaf key={:?} hash={}", &key_bits, hex::encode(&hash));
+            let hash = self.write_node(&new_leaf)?;
+            //println!("add leaf key={:?} hash={}", &key_bits, hex::encode(&hash));
             parent.children.insert(key_bits.clone(), hash);
             let parenthash = self.write_node(&parent)?;
             Ok(parenthash)
         } else {
-            println!("split");
-            let mut new_branch = Node::default();
-            Ok(vec![])
+            let oldhash=parent.children[&oldbranch].clone();
+            let oldnode= self.read_node(&oldhash)?;
+            parent.children.remove(&oldbranch);
+            assert!(!parent.children.contains_key(&oldbranch));
+            
+            //println!("split");
+            // remove old branch
+            let mut new_branchkey = &oldbranch[0..common];
+            let mut new_branch = Node::default();            
+            
+            // make new children
+            // oldnode
+            let mut new_branchkey_a= &oldbranch[common..];
+            let mut new_branchkey_b= &key_bits[common..];
+
+            let new_branch_a_hash=  oldhash.clone();
+            let new_branch_b_hash=self.do_put(&new_branchkey_b.to_vec(), 
+            value, &mut new_branch)?;
+            // link
+            new_branch.children.insert(new_branchkey_a.to_vec(), new_branch_a_hash);
+            new_branch.children.insert(new_branchkey_b.to_vec(), new_branch_b_hash);
+
+
+            //println!("oldbranch= {:?}", new_branchkey);
+            //println!("new branch a={:?}", new_branchkey_a);
+            //println!("new branch b={:?}", new_branchkey_b);
+            
+            let hash = self.write_node(&parent)?;
+            Ok(hash)
         }
     }
 
@@ -140,30 +221,31 @@ where
     }
 }
 
-pub fn dynamic_sparse_main2() -> Result<(), failure::Error> {
+pub fn dynamic_sparse_main() -> Result<(), failure::Error> {
     let database = MemoryDatabase::default();
     let mut smt = SparseMerkletrie::new(MemoryDatabase::default());
     //let database = Database::new("./data");
     //let mut smt = SparseMerkletrie::new(database.clone());
     let mut i: i32 = 0;
-    let n = 1;
+    let n = 1000;
     let now = Instant::now();
     for i in 0..n {
         let b = i as i32;
         let value = b.to_le_bytes();
-        //let key= database.compute_hash(&value);
-        let key = hex::decode("f081").unwrap();
-        let mut output = "".to_string();
+        let key= database.compute_hash(&value);                
         smt.put(&key, &value);
     }
     println!("sparse merkletrie= {}", now.elapsed().as_millis());
     Ok(())
 }
 
-pub fn dynamic_sparse_main() -> Result<(), failure::Error> {
+pub fn dynamic_sparse_main2() -> Result<(), failure::Error> {
     println!("dynamic_sparse_main");
     let database = MemoryDatabase::default();
     let mut smt = SparseMerkletrie::new(MemoryDatabase::default());
-    smt.put(&hex::decode("ff01")?, &hex::decode("01")?);
+    smt.put(&hex::decode("f1")?, &hex::decode("02")?);
+    smt.put(&hex::decode("f0")?, &hex::decode("01")?);
+    
+    smt.show_root();
     Ok(())
 }
