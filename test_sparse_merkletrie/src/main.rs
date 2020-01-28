@@ -39,6 +39,6 @@ fn binary_test() {
     println!("encoded:{} bytes", m.len());
 }
 pub fn main() {
-
+    //binary_test();
     dynamic_smt::dynamic_sparse_main();
 }

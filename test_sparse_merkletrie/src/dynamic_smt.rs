@@ -7,6 +7,10 @@ use serde::Deserialize;
 use serde::Serialize;
 use std::collections::BTreeMap;
 use std::time::{Duration, Instant};
+use bitvec::*;
+use bitvec::prelude::*;
+type  SMT_BYTES=BitVec<Msb0,u8>; // big endian
+
 #[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq)]
 pub struct SparseMerkletrie<T>
 where
@@ -18,7 +22,7 @@ where
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq)]
 pub struct Node {
-    pub children: BTreeMap<Vec<u8>, Vec<u8>>,
+    pub children: BTreeMap<SMT_BYTES, Vec<u8>>,
     pub value: Vec<u8>,
 }
 
@@ -88,33 +92,21 @@ where
         //println!("hash= {}", hex::encode(&hash));
     }
 
-    pub fn convert_to_bits(&self, key: &[u8]) -> Vec<u8> {
-        let mut index = 8 * key.len() as i32 - 1;
-        let mut ret: Vec<u8> = vec![];
+    pub fn convert_to_bits(&self, key: &[u8]) -> SMT_BYTES {
+        let mut index = 8 * key.len() as i32 - 1;        
+        let mut ret: SMT_BYTES= SMT_BYTES::default();
         while index >= 0 {
             let which_byte = key.len() as i32 - 1 - index / 8;
             let byte_value = key[which_byte as usize];
             let bit = index % 8;
             let flag_value = byte_value & 1 << bit;
-            let flag = if flag_value > 0 { 1 } else { 0 };
+            let flag =  flag_value > 0 ;
             ret.push(flag);
             index = index - 1;
         }
         ret
     }
-    pub fn show_bits(&self, bits: &[u8]) {
-        for i in 0..bits.len() {
-            print!("{}", bits[i]);
-        }
-        println!("");
-    }
-    pub fn get_bits(&self, bits: &[u8]) -> String {
-        let mut ret = "".to_string();
-        for i in 0..bits.len() {
-            ret.push_str(&format!("{}", bits[i]));
-        }
-        ret
-    }
+    
     pub fn put(&mut self, key: &[u8], value: &[u8]) {
         let mut root = self.root.clone();
         let bits = self.convert_to_bits(key);
@@ -128,7 +120,7 @@ where
 
     pub fn do_put(
         &mut self,
-        key_bits: &[u8],
+        key_bits:& SMT_BYTES,
         value: &[u8],        
         parent: &mut Node,
     ) -> Result<Vec<u8>, Error> {
@@ -140,7 +132,7 @@ where
             new_leaf.value = value.to_vec();
             let hash = self.write_node(&new_leaf).unwrap();
             parent.children.insert(key_bits.to_vec(), hash);
-            println!("add leaf key={}", self.get_bits(&key_bits));
+            println!("add leaf key={:?}", &key_bits);
             let parenthash = self.write_node(&parent)?;
             Ok(parenthash)
         } else {
