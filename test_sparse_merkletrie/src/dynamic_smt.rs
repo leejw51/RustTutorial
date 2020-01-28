@@ -195,7 +195,9 @@ where
             // link
             new_branch.children.insert(new_branchkey_a.to_vec(), new_branch_a_hash);
             new_branch.children.insert(new_branchkey_b.to_vec(), new_branch_b_hash);
-
+            let new_branch_hash = self.write_node(&new_branch)?;
+            parent.children.insert(new_branchkey.to_vec(), new_branch_hash);
+            //println!("children {}", parent.children.len());
 
             //println!("oldbranch= {:?}", new_branchkey);
             //println!("new branch a={:?}", new_branchkey_a);
@@ -245,6 +247,7 @@ pub fn dynamic_sparse_main2() -> Result<(), failure::Error> {
     let mut smt = SparseMerkletrie::new(MemoryDatabase::default());
     smt.put(&hex::decode("f1")?, &hex::decode("02")?);
     smt.put(&hex::decode("f0")?, &hex::decode("01")?);
+    smt.put(&hex::decode("f2")?, &hex::decode("01")?);
     
     smt.show_root();
     Ok(())

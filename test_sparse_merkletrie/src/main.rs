@@ -43,8 +43,8 @@ fn binary_test() {
 }
 pub fn main() {
     //binary_test();
-    sparse_main();
-    patricia_main();
-    starling_main();
+  //  sparse_main();
+  //  patricia_main();
+  //  starling_main();
     dynamic_smt::dynamic_sparse_main();
 }
