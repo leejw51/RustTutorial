@@ -92,24 +92,9 @@ where
         //println!("hash= {}", hex::encode(&hash));
     }
 
-    pub fn convert_to_bits(&self, key: &[u8]) -> SMT_BYTES {
-        let mut index = 8 * key.len() as i32 - 1;        
-        let mut ret: SMT_BYTES= SMT_BYTES::default();
-        while index >= 0 {
-            let which_byte = key.len() as i32 - 1 - index / 8;
-            let byte_value = key[which_byte as usize];
-            let bit = index % 8;
-            let flag_value = byte_value & 1 << bit;
-            let flag =  flag_value > 0 ;
-            ret.push(flag);
-            index = index - 1;
-        }
-        ret
-    }
-    
     pub fn put(&mut self, key: &[u8], value: &[u8]) {
         let mut root = self.root.clone();
-        let bits = self.convert_to_bits(key);
+        let bits =SMT_BYTES::from_slice(key);
         let roothash = self
             .do_put(&bits, value,  &mut root)
             .expect("ok");
