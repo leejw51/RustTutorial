@@ -19,3 +19,4 @@ blake2=""
 rocksdb=""
 log=""
 starling=""
+bitvec = {version="0.17.2", features=["serde"]}

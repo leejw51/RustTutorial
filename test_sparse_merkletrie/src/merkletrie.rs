@@ -3,14 +3,14 @@ byte merkletrie
 written by Jongwhan Lee
 */
 
+use super::database::{Database, MemoryDatabase};
+use super::merkletrie_interface::{MerkletrieDatabase, MerkletrieInterface};
 use failure::Error;
 use log::debug;
 use serde::Deserialize;
 use serde::Serialize;
 use std::collections::BTreeMap;
-use super::merkletrie_interface::{MerkletrieInterface, MerkletrieDatabase};
 use std::time::{Duration, Instant};
-use super::database::{Database, MemoryDatabase};
 #[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq)]
 pub struct Node {
     pub children: BTreeMap<Vec<u8>, Vec<u8>>, // key: address, value: Node Hash
@@ -122,14 +122,15 @@ where
         let next_index = index + 1;
         let is_leaf = key.len() == next_index;
 
-        if is_leaf {use super::database::Database;
+        if is_leaf {
+            use super::database::Database;
             let mut newleaf = if parent.children.contains_key(current) {
                 let hash_found = &parent.children[current];
                 self.read_node(&hash_found)?
             } else {
                 let mut ret = Node::default();
                 // create
-                
+
                 ret
             };
 
@@ -226,30 +227,28 @@ where
 mod tests {
     use super::*;
 
-   
-
     #[test]
     fn check_merkletrie() {
         let m = MemoryDatabase::default();
         let mut trie = Merkletrie::new(m);
-        
+
         assert!(trie.get_roothash().unwrap()== hex::decode("739a3012ff930845420e90a6eb7289025915575667c214bee93eed65f336a7ab378d8d4edc53e016837de586ce62d0aa831b3b1d77de3883d92313f95663f5f8").unwrap().to_vec());
 
         trie.put_hex("abcdef", "11223344").unwrap();
-        
+
         assert!(trie.get_roothash().unwrap()== hex::decode("ee8e88245eabd782435d0b85823bf2bfb798124751227ff2e93b65f3f10f2ed412ce33f6e032412296dc5ae2c2a153591dbbecb6e02978d84b10397e896d2fb6").unwrap().to_vec());
 
         trie.put_hex("abcdef", "1020").unwrap();
-        
+
         assert!(trie.get_roothash().unwrap()==  hex::decode("456e6dff6b01b9a648b52c613142bc3d17828deb8d21d60e734d2475eb8d0f56359197e83ff3620a4da25b17c548dd82e45991a9f099847936a148d62bb366ef").unwrap().to_vec());
 
         trie.put_string("apple", "ipad").unwrap();
         assert!("ipad" == trie.get_string("apple").unwrap());
-        
+
         assert!(trie.get_roothash().unwrap()==  hex::decode("c74ce635c8eab34411405f1621615ae6d784c7584393abf856815ef8293be5eebb1c53830fd3d9827d697f94e1df50c5e6ed691565dbdd4c5f40af29b37a0471").unwrap().to_vec());
 
         trie.put_string("apple", "ipad2").unwrap();
-        assert!("ipad2" == trie.get_string("apple").unwrap());        
+        assert!("ipad2" == trie.get_string("apple").unwrap());
         assert!(trie.get_roothash().unwrap()==  hex::decode("c1d0da1bc8aaabfbf5963fea2c4d0fb846b89a390cfc5d7d9c3ecffdc9ab2f70fcf125203a524fc79d3e463abeedcbd6d50ed45d4364ebc6c3df4e184cf6ee90").unwrap().to_vec());
     }
 
@@ -270,31 +269,29 @@ mod tests {
     }
 }
 
-
-pub fn patricia_main()->Result<(),failure::Error> {
+pub fn patricia_main() -> Result<(), failure::Error> {
     //let database = Database::new("./data");
     //let mut smt = Merkletrie::new(database.clone());
     let database = MemoryDatabase::default();
     let mut smt = Merkletrie::new(MemoryDatabase::default());
-    let mut i:i32=0;
-    let n= 1000;
+    let mut i: i32 = 0;
+    let n = 1000;
     let now = Instant::now();
     for i in 0..n {
         let b = i as i32;
-        let value= b.to_le_bytes();
-        let key= database.compute_hash(&value);
-    
+        let value = b.to_le_bytes();
+        let key = database.compute_hash(&value);
+
         let mut output = "".to_string();
-       // println!("{} {}", i, hex::encode(&key));
+        // println!("{} {}", i, hex::encode(&key));
         smt.put(&key, &value);
     }
     println!("patricia merkletrie= {}", now.elapsed().as_millis());
     Ok(())
 }
 
-
-fn test1() ->Result<(),failure::Error>{
-    let database= MemoryDatabase::default();
+fn test1() -> Result<(), failure::Error> {
+    let database = MemoryDatabase::default();
     let mut smt = Merkletrie::new(MemoryDatabase::default());
     let mut output = "".to_string();
     smt.put(&hex::decode("1234")?, &hex::decode("fe2a")?);
@@ -303,18 +300,18 @@ fn test1() ->Result<(),failure::Error>{
     Ok(())
 }
 
-fn test2() ->Result<(),failure::Error> {
-    let database= MemoryDatabase::default();
+fn test2() -> Result<(), failure::Error> {
+    let database = MemoryDatabase::default();
     let mut smt = Merkletrie::new(MemoryDatabase::default());
     let mut output = "".to_string();
     smt.put(&hex::decode("5212")?, &hex::decode("3f4b")?);
-   
+
     smt.put(&hex::decode("1234")?, &hex::decode("fe2a")?);
     println!("{}", &hex::encode(&smt.get_roothash()?));
     Ok(())
 }
 
-pub fn patricia_order()->Result<(),failure::Error> {
+pub fn patricia_order() -> Result<(), failure::Error> {
     test1();
     test2();
     Ok(())
