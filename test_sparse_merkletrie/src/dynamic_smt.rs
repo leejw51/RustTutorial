@@ -235,7 +235,7 @@ pub fn dynamic_sparse_main() -> Result<(), failure::Error> {
         let key= database.compute_hash(&value);                
         smt.put(&key, &value);
     }
-    println!("sparse merkletrie= {}", now.elapsed().as_millis());
+    println!("dynamic sparse merkletrie= {}", now.elapsed().as_millis());
     Ok(())
 }
 
