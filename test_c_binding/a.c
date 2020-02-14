@@ -3,6 +3,13 @@
 #include <string.h>
 #include <wchar.h>
 
+// C header
+// Returns ownership to the caller.
+struct Foo* foo_new(void);
+
+// Takes ownership from the caller; no-op when invoked with NULL.
+void foo_delete(struct Foo*);
+
 // sample struct to illustrate passing a C-struct to Rust
 struct CStruct {
     char c;
@@ -25,7 +32,7 @@ extern void rust_int_array(const int *array, int length);
 extern void rust_string_array(const char **array, int length);
 extern void rust_cstruct(struct CStruct *c_struct);
 
-int main() {
+int test() {
     // pass char to Rust
     rust_char('A');
     rust_wchar(L'ζ');
@@ -69,5 +76,9 @@ int main() {
     free(p); 
     free(c_struct.s);
 
+}
+int main() {
+    void* f= foo_new();
+    foo_delete(f);
     return 0;
 }
