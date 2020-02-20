@@ -7,17 +7,18 @@
     {
       "type": "gdb",
       "request": "launch",
-      "name": "Launch Program",
+      "name": "Launch Program gdb",
       "target": "./target/debug/code",
       "cwd": "${workspaceRoot}",
       "valuesFormatting": "parseText"
     },
 
     {
-      "type": "lldb-mi",
+      "type": "lldb",
       "request": "launch",
-      "name": "Launch Program",
+      "name": "Launch Program lldb",
       "target": "./target/debug/code",
+      "program": "./target/debug/code",
       "cwd": "${workspaceRoot}",
       "valuesFormatting": "parseText"
     }
