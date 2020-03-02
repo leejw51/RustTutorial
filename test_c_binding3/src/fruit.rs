@@ -26,3 +26,11 @@ pub unsafe extern "C" fn display( f: *mut Fruit) {
 } 
 
 
+#[no_mangle]
+pub unsafe extern "C" fn set_callback( f: *mut Fruit,call_back: extern fn(*const u8) -> i32) {    
+    println!("set activate callback");
+    (*f).call_back =call_back;
+} 
+
+
+

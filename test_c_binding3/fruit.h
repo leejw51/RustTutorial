@@ -9,3 +9,5 @@ typedef struct Fruit {
 } Fruit;
 
 void display(Fruit *f);
+
+void set_callback(Fruit *f, int32_t (*call_back)(const uint8_t*));

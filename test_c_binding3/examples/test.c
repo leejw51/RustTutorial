@@ -15,7 +15,8 @@ int main()
 {
     Fruit* f= (Fruit*) malloc(sizeof(Fruit));
     f->price=200;
-    f->call_back = &test_callback;
+    //f->call_back = &test_callback;
+    set_callback(f,&test_callback);
     while(true) {
         display(f);
         sleep(1);
