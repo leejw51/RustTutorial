@@ -8,6 +8,8 @@ typedef struct Fruit {
   int32_t (*call_back)(const uint8_t*);
 } Fruit;
 
+typedef int32_t (*MyCallback)(const uint8_t*);
+
 void display(Fruit *f);
 
-void set_callback(Fruit *f, int32_t (*call_back)(const uint8_t*));
+void set_callback(Fruit *f, MyCallback call_back);

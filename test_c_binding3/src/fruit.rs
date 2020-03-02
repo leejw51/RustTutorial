@@ -1,5 +1,6 @@
 
 use std::ffi::CString;
+pub type MyCallback=extern fn(*const u8) -> i32;
 #[repr(C)]
 pub struct Fruit {
     pub price:i64,
@@ -27,7 +28,7 @@ pub unsafe extern "C" fn display( f: *mut Fruit) {
 
 
 #[no_mangle]
-pub unsafe extern "C" fn set_callback( f: *mut Fruit,call_back: extern fn(*const u8) -> i32) {    
+pub unsafe extern "C" fn set_callback( f: *mut Fruit,call_back: MyCallback) {    
     println!("set activate callback");
     (*f).call_back =call_back;
 } 
