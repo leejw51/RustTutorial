@@ -6,7 +6,8 @@
 #include "../fruit.h"
 
 int test_callback(char* msg)  {
-    printf("callback %s",msg);
+    printf("*********************callback %s\n",msg);
+    printf("#########################\n");
     return 0;
 }
 
