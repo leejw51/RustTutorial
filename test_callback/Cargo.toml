@@ -2,5 +2,8 @@
 name = "test_callback"
 version = "0.1.0"
 authors = ["Jongwhan Lee <leejw51@gmail.com>"]
+edition = "2018"
+
 
 [dependencies]
+read_input = "0.8.4"
