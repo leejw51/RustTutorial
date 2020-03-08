@@ -1,5 +1,3 @@
-use super::consumer::Consumer;
-use super::producer::Producer;
 use read_input::prelude::*;
 use std::sync::mpsc::channel;
 use std::sync::mpsc::Receiver;
@@ -8,8 +6,6 @@ use std::sync::Arc;
 use std::sync::Mutex;
 use std::thread;
 
-type MyProducer = Arc<Mutex<dyn Producer>>;
-type MyConsumer = Arc<Mutex<dyn Consumer>>;
 type MyCore = Arc<Mutex<Core>>;
 
 #[derive(Clone)]
@@ -37,7 +33,7 @@ impl CoreProducer {
         }
     }
     pub fn process(&mut self) {
-        while true {
+        loop {
             println!("CoreProducer process");
 
             let msg=format!("apple ][ {}", chrono::Local::now());
@@ -67,7 +63,7 @@ impl CoreConsumer {
     }
 
     pub fn process(&mut self) {
-        while true {
+        loop {
             println!("CoreConsumer process");
             //std::thread::sleep(std::time::Duration::from_secs(1));
             if let Ok(v)=self.receiver.recv_timeout(std::time::Duration::from_secs(1)) {
@@ -79,12 +75,6 @@ impl CoreConsumer {
                 break;
             }
         }
-    }
-}
-
-impl Producer for CoreProducer {
-    fn push(&self, data: &str) {
-        println!("push {}", data);
     }
 }
 

@@ -1,5 +1,3 @@
-mod consumer;
-mod producer;
 mod program;
 use program::Program;
 
