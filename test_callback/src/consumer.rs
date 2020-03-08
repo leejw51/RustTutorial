@@ -1,7 +1,1 @@
-
-pub trait Consumer {
-
-}
-
-
-
+pub trait Consumer {}

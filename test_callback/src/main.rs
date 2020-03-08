@@ -1,8 +1,7 @@
-mod program;
 mod consumer;
 mod producer;
+mod program;
 use program::Program;
-
 
 fn main() {
     println!("Hello, world!");

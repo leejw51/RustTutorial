@@ -1,14 +1,16 @@
+use super::consumer::Consumer;
+use super::producer::Producer;
 use read_input::prelude::*;
+use std::sync::mpsc::channel;
+use std::sync::mpsc::Receiver;
+use std::sync::mpsc::Sender;
 use std::sync::Arc;
 use std::sync::Mutex;
-
-use super::producer::Producer;
-use super::consumer::Consumer;
 use std::thread;
 
-type MyProducer=Arc<Mutex<dyn Producer>>;
-type MyConsumer=Arc<Mutex<dyn Consumer>>;
-type MyCore= Arc<Mutex<Core>>;
+type MyProducer = Arc<Mutex<dyn Producer>>;
+type MyConsumer = Arc<Mutex<dyn Consumer>>;
+type MyCore = Arc<Mutex<Core>>;
 
 #[derive(Clone)]
 pub struct Core {
@@ -16,126 +18,120 @@ pub struct Core {
 }
 
 impl Core {
-    pub fn new()->Self {
-        Core {
-            quit: false,
-        }
+    pub fn new() -> Self {
+        Core { quit: false }
     }
 }
 
 pub struct CoreProducer {
     quit: bool,
     core: Option<MyCore>,
+    sender: Sender<String>,
 }
 impl CoreProducer {
-    pub fn new()->Self {
+    pub fn new(sender: Sender<String>) -> Self {
         CoreProducer {
-
             quit: false,
-            core:None,
+            core: None,
+            sender,
         }
     }
     pub fn process(&mut self) {
         while true {
-        println!("CoreProducer process");
-    
-        
-        std::thread::sleep(std::time::Duration::from_secs(1));
+            println!("CoreProducer process");
 
-        let b= self.core.as_ref().unwrap().lock().unwrap();
-        if b.quit  {
-            break;
-        }
+            let msg=format!("apple ][ {}", chrono::Local::now());
+            self.sender.send(msg.to_string());
+            std::thread::sleep(std::time::Duration::from_secs(1));
 
+            let b = self.core.as_ref().unwrap().lock().unwrap();
+
+            if b.quit {
+                break;
+            }
         }
     }
-  
-
-
 }
 pub struct CoreConsumer {
     quit: bool,
     core: Option<MyCore>,
-    
+    receiver: Receiver<String>,
 }
 impl CoreConsumer {
-    pub fn new()->Self {
+    pub fn new(receiver: Receiver<String>) -> Self {
         CoreConsumer {
-
             quit: false,
             core: None,
+            receiver,
         }
     }
 
     pub fn process(&mut self) {
         while true {
-        println!("CoreConsumer process");
-        std::thread::sleep(std::time::Duration::from_secs(1));
+            println!("CoreConsumer process");
+            //std::thread::sleep(std::time::Duration::from_secs(1));
+            if let Ok(v)=self.receiver.recv_timeout(std::time::Duration::from_secs(1)) {
+                println!("received {}", v);
+            }
 
-        let b= self.core.as_ref().unwrap().lock().unwrap();
-        if b.quit  {
-            break;
-        }
+            let b = self.core.as_ref().unwrap().lock().unwrap();
+            if b.quit {
+                break;
+            }
         }
     }
-
 }
 
 impl Producer for CoreProducer {
-    fn push(&self, data: &str)
-    {
+    fn push(&self, data: &str) {
         println!("push {}", data);
     }
-
 }
 
 pub struct Program {
     //pub producer: Producer,
     //pub consumer: Consumer,
     pub core: MyCore,
-    pub producer: Option<  CoreProducer>,
-    pub consumer: Option< CoreConsumer>,
+    pub producer: Option<CoreProducer>,
+    pub consumer: Option<CoreConsumer>,
 }
 
-
-impl  Program {
-    pub fn new()-> Self {
+impl Program {
+    pub fn new() -> Self {
         Program {
             core: Arc::new(Mutex::new(Core::new())),
             producer: None,
             consumer: None,
         }
     }
-    pub fn process(& mut  self) {
+
+    pub fn process(&mut self) {
         println!("program process");
-   
-    
-        let core1= Some(self.core.clone());
-        let child=thread::spawn( || {            
-            let mut p = CoreProducer::new();              
-            p.core= core1;
+
+        let (sender, receiver): (Sender<String>, Receiver<String>) = channel();
+
+        let core1 = Some(self.core.clone());
+        let child = thread::spawn(|| {
+            let mut p = CoreProducer::new(sender);
+            p.core = core1;
             p.process();
         });
-        let core2= Some(self.core.clone());
-        let child2=thread::spawn( || {            
-            let mut p = CoreConsumer::new();
-            p.core= core2;
+        let core2 = Some(self.core.clone());
+        let child2 = thread::spawn(|| {
+            let mut p = CoreConsumer::new(receiver);
+            p.core = core2;
             p.process();
         });
-       
 
         let a: String = input().msg("input command: ").get();
         println!("OK {}", a);
         {
-            self.core.lock().unwrap().quit=true;
-            
+            self.core.lock().unwrap().quit = true;
         }
-
-        
 
         child.join();
         child2.join();
     }
-    
+
     // add code here
 }
