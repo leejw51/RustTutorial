@@ -81,8 +81,6 @@ impl CoreConsumer {
 }
 
 pub struct Program {
-    //pub producer: Producer,
-    //pub consumer: Consumer,
     pub core: MyCore,
     pub producer: Option<CoreProducer>,
     pub consumer: Option<CoreConsumer>,
