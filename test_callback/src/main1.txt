@@ -8,7 +8,6 @@ use std::thread;
 use std::thread::JoinHandle;
 
 type MyCore = Arc<Mutex<Core>>;
-type MyCallback = dyn FnMut(String) -> i32;
 
 #[derive(Clone)]
 pub struct Core {
@@ -21,19 +20,17 @@ impl Core {
     }
 }
 
-pub struct CoreProducer<'a> {
+pub struct CoreProducer {
     name: String,
     core: Option<MyCore>,
     sender: Sender<String>,
-    my_callback: &'a MyCallback,
 }
-impl<'a> CoreProducer<'a> {
-    pub fn new(sender: Sender<String>, name: String, my_callback: &'a MyCallback) -> Self {
+impl CoreProducer {
+    pub fn new(sender: Sender<String>, name: String) -> Self {
         CoreProducer {
             name,
             core: None,
             sender,
-            my_callback,
         }
     }
     pub fn process(&mut self) {
@@ -83,13 +80,13 @@ impl CoreConsumer {
     }
 }
 
-pub struct Program<'a> {
+pub struct Program {
     pub core: MyCore,
-    pub producer: Option<CoreProducer<'a>>,
+    pub producer: Option<CoreProducer>,
     pub consumer: Option<CoreConsumer>,
 }
 
-impl<'a> Program<'a> {
+impl Program {
     pub fn new() -> Self {
         Program {
             core: Arc::new(Mutex::new(Core::new())),
@@ -107,16 +104,8 @@ impl<'a> Program<'a> {
     ) {
         let core1 = Some(core);
         let name1 = name.to_string();
-
         let child = thread::spawn(|| {
-            let mut count=0;
-            // move ownership of environment
-            let call1 = move |arg: String| -> i32 {
-                count= count+1;
-                count
-                
-             };
-            let mut p = CoreProducer::new(sender, name1, &call1);
+            let mut p = CoreProducer::new(sender, name1);
             p.core = core1;
             p.process();
         });
