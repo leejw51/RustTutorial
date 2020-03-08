@@ -5,6 +5,7 @@ use std::sync::mpsc::Sender;
 use std::sync::Arc;
 use std::sync::Mutex;
 use std::thread;
+use std::thread::JoinHandle;
 
 type MyCore = Arc<Mutex<Core>>;
 
@@ -20,24 +21,24 @@ impl Core {
 }
 
 pub struct CoreProducer {
-    quit: bool,
+    name: String,
     core: Option<MyCore>,
     sender: Sender<String>,
 }
 impl CoreProducer {
-    pub fn new(sender: Sender<String>) -> Self {
+    pub fn new(sender: Sender<String>, name: String) -> Self {
         CoreProducer {
-            quit: false,
+            name,
             core: None,
             sender,
         }
     }
     pub fn process(&mut self) {
         loop {
-            println!("CoreProducer process");
+            println!("CoreProducer process {}", self.name);
 
-            let msg=format!("apple ][ {}", chrono::Local::now());
-            self.sender.send(msg.to_string());
+            let msg = format!("apple ][ {}", chrono::Local::now());
+            self.sender.send(msg).unwrap();
             std::thread::sleep(std::time::Duration::from_secs(1));
 
             let b = self.core.as_ref().unwrap().lock().unwrap();
@@ -49,14 +50,12 @@ impl CoreProducer {
     }
 }
 pub struct CoreConsumer {
-    quit: bool,
     core: Option<MyCore>,
     receiver: Receiver<String>,
 }
 impl CoreConsumer {
     pub fn new(receiver: Receiver<String>) -> Self {
         CoreConsumer {
-            quit: false,
             core: None,
             receiver,
         }
@@ -66,7 +65,10 @@ impl CoreConsumer {
         loop {
             println!("CoreConsumer process");
             //std::thread::sleep(std::time::Duration::from_secs(1));
-            if let Ok(v)=self.receiver.recv_timeout(std::time::Duration::from_secs(1)) {
+            if let Ok(v) = self
+                .receiver
+                .recv_timeout(std::time::Duration::from_secs(1))
+            {
                 println!("received {}", v);
             }
 
@@ -95,23 +97,47 @@ impl Program {
         }
     }
 
+    pub fn add_producer(
+        &self,
+        nodes: &mut Vec<JoinHandle<()>>,
+        core: MyCore,
+        sender: Sender<String>,
+        name: &str,
+    ) {
+        let core1 = Some(core);
+        let name1 = name.to_string();
+        let child = thread::spawn(|| {
+            let mut p = CoreProducer::new(sender, name1);
+            p.core = core1;
+            p.process();
+        });
+        nodes.push(child);
+    }
+
+    pub fn set_consumer(
+        &self,
+        nodes: &mut Vec<JoinHandle<()>>,
+        core: MyCore,
+        receiver: Receiver<String>,
+    ) {
+        let core1 = Some(core);
+        let child = thread::spawn(|| {
+            let mut p = CoreConsumer::new(receiver);
+            p.core = core1;
+            p.process();
+        });
+        nodes.push(child);
+    }
+
     pub fn process(&mut self) {
         println!("program process");
 
         let (sender, receiver): (Sender<String>, Receiver<String>) = channel();
 
-        let core1 = Some(self.core.clone());
-        let child = thread::spawn(|| {
-            let mut p = CoreProducer::new(sender);
-            p.core = core1;
-            p.process();
-        });
-        let core2 = Some(self.core.clone());
-        let child2 = thread::spawn(|| {
-            let mut p = CoreConsumer::new(receiver);
-            p.core = core2;
-            p.process();
-        });
+        let mut threads: Vec<JoinHandle<()>> = vec![];
+        self.add_producer(&mut threads, self.core.clone(), sender.clone(), "superman");
+        self.add_producer(&mut threads, self.core.clone(), sender.clone(), "batman");
+        self.set_consumer(&mut threads, self.core.clone(), receiver);
 
         let a: String = input().msg("input command: ").get();
         println!("OK {}", a);
@@ -119,8 +145,10 @@ impl Program {
             self.core.lock().unwrap().quit = true;
         }
 
-        child.join();
-        child2.join();
+        for x in threads {
+            x.join().unwrap();
+        }
+        println!("done");
     }
 
     // add code here
