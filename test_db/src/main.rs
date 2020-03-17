@@ -15,15 +15,8 @@ fn test_sled(count: u64) -> Result<(), String> {
 
         let key_res = hasher.result();
         let data_res = hasher_data.result();
-        println!(
-            "{} {} {}",
-            i,
-            hex::encode(&key_res[..]),
-            hex::encode(&data_res[..])
-        );
         tree.insert(&key_res[..], &data_res[..]);
         i = i + 1;
-        println!("i={}", i);
         if i > count {
             break;
         }
@@ -46,15 +39,8 @@ fn test_rocksdb(count: u64) -> Result<(), String> {
 
         let key_res = hasher.result();
         let data_res = hasher_data.result();
-        println!(
-            "{} {} {}",
-            i,
-            hex::encode(&key_res[..]),
-            hex::encode(&data_res[..])
-        );
         db.put(&key_res[..], &data_res[..]);
         i = i + 1;
-        println!("i={}", i);
         if i > count {
             break;
         }
@@ -78,15 +64,9 @@ fn test_sledtree(count: u64) -> Result<(), String> {
 
         let key_res = hasher.result();
         let data_res = hasher_data.result();
-        println!(
-            "{} {} {}",
-            i,
-            hex::encode(&key_res[..]),
-            hex::encode(&data_res[..])
-        );
+        
         tree.insert(&key_res[..], &data_res[..]);
         i = i + 1;
-        println!("i={}", i);
         if i > count {
             break;
         }
@@ -114,21 +94,13 @@ fn test_sledtree_batch(count: u64) -> Result<(), String> {
 
             let key_res = hasher.result();
             let data_res = hasher_data.result();
-            println!(
-                "{} {} {}",
-                i,
-                hex::encode(&key_res[..]),
-                hex::encode(&data_res[..])
-            );
             batch.insert(&key_res[..], &data_res[..]);
 
             i = i + 1;
-            println!("i={}", i);
             if i > count {
                 break;
             }
         }
-        println!("applying");
         tree.apply_batch(batch).unwrap();
 
         if i > count {
@@ -141,25 +113,28 @@ fn test_sledtree_batch(count: u64) -> Result<(), String> {
 
 fn main() {
     println!("Hello, world!");
-    //    let count=1000000;
-    let count = 200;
+        let count=1000000;
+    //let count = 200;
     let mut start = Instant::now();
-
+    println!("1");
     start = Instant::now();
     test_rocksdb(count);
     let e1 = start.elapsed();
 
+    println!("2");
     start = Instant::now();
     test_sled(count);
     let e2 = start.elapsed();
 
+    println!("3");
     start = Instant::now();
     test_sledtree(count);
     let e3 = start.elapsed();
 
+    println!("4");
     start = Instant::now();
     test_sledtree_batch(count);
     let e4 = start.elapsed();
-    println!("rocksdb{:?} seld {:?} sled tree{:?}  sled-tree batch {:?}", e1, e2, e3,e4);
+    println!("rocksdb= {:?} seld= {:?} sled tree= {:?}  sled-tree batch= {:?}", e1, e2, e3,e4);
 
 }
