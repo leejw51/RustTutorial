@@ -160,6 +160,6 @@ fn main() {
     start = Instant::now();
     test_sledtree_batch(count);
     let e4 = start.elapsed();
-    println!("{:?} {:?} {:?}", e1, e2, e3);
-    println!("{:?}", e4);
+    println!("rocksdb{:?} seld {:?} sled tree{:?}  sled-tree batch {:?}", e1, e2, e3,e4);
+
 }
