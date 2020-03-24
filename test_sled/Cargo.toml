@@ -8,3 +8,7 @@ edition = "2018"
 
 [dependencies]
 sled= ""
+failure=""
+hex=""
+blake2=""
+rocksdb=""
