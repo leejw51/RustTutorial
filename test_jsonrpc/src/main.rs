@@ -4,43 +4,42 @@ use jsonrpc_http_server::*;
 use jsonrpc_core::Result;
 use jsonrpc_derive::rpc;
 
+/*
+{
+	"method": "get_number",
+	"jsonrpc": "2.0",
+	"params": ["pear"],
+	"id": "wallet_restore_hd"
+}
+*/
 #[rpc]
-pub trait AppInterface: Send+ Sync {
-    #[rpc(name="get_number")]
-    fn get_number(&self, name:String)-> Result<String> ;
+pub trait AppInterface: Send + Sync {
+    #[rpc(name = "get_number")]
+    fn get_number(&self, name: String) -> Result<String>;
 }
 
-
-pub struct App {
-
-}
+pub struct App {}
 
 impl AppInterface for App {
-    fn get_number(&self, name:String)-> Result<String> 
-    {
+    fn get_number(&self, name: String) -> Result<String> {
         Ok(format!("apple={}", name))
     }
-
 }
 
 impl App {
-    pub fn new()->Self {
-        App {
-
-        }
+    pub fn new() -> Self {
+        App {}
     }
 }
-
 
 fn main() {
     let m = App::new();
     let mut io = IoHandler::new();
     io.add_method("say_hello", |_: Params| {
         Ok(Value::String("hello".to_string()))
-
     });
 
-    io.extend_with((m.to_delegate()));
+    io.extend_with(m.to_delegate());
 
     let _server = ServerBuilder::new(io)
         .cors(DomainsValidation::AllowOnly(vec![
