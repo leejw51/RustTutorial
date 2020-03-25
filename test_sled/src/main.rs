@@ -1,26 +1,16 @@
-use sled::Db;
-use std::str;
+mod test;
+mod sled_test;
+mod rocks;
 fn main() {
-    let tree = Db::open("./disk").unwrap();
-
-    // set and get
-    tree.insert(b"ok", b"apple".to_vec());
-    tree.insert(b"ok", b"apple5".to_vec());
-    println!("{:?}", str::from_utf8(&tree.get(b"ok").unwrap_or_default().unwrap_or_default()).unwrap_or_default());
-    match tree.get(b"ok") {
-        Ok(a) => {
-            match a {
-                Some(c) => {
-                    let r= str::from_utf8(&c).unwrap();
-                    println!("{:?}",r);
-
-                },
-                _=>{}
-
-            }
-        },
-        _ => {},
-    }
-        // block until all operations are on-disk
-    tree.flush();
+    let count=1000000;
+    println!("writing {} items", count);
+    print!("sled normal '");
+    sled_test::write_db(count).unwrap();
+    print!("sled batch '");
+    sled_test::write_db_batch(count).unwrap();
+    print!("rocks normal '");
+    rocks::write_db(count).unwrap();
+    print!("rocks batch '");
+    rocks::write_db_batch(count).unwrap();
 }
+
