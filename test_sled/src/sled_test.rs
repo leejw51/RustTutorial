@@ -89,8 +89,8 @@ pub fn test(count:i32) -> Result<(), failure::Error> {
     let start= Instant::now();
     for i in 0..count {
         let mut hasher = Blake2s::new();    
-        let key = i as u64;
-        let key2=hex::encode(&u64::to_be_bytes(key));
+        //let key = i as u64;
+        let key2=hex::encode(&u64::to_be_bytes(i as u64));
         let mut hasher_value = Blake2s::new();    
         hasher_value.input(format!("data {}",i));
         let res_value= hasher_value.result();
