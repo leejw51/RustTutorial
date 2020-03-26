@@ -1,8 +1,9 @@
 mod test;
 mod sled_test;
 mod rocks;
-fn main() {
-    let count=1000000;
+
+fn test_performance() {
+    let count=1000;
     println!("writing {} items", count);
     print!("sled normal '");
     sled_test::write_db(count).unwrap();
@@ -12,5 +13,8 @@ fn main() {
     rocks::write_db(count).unwrap();
     print!("rocks batch '");
     rocks::write_db_batch(count).unwrap();
+}
+fn main() {
+    sled_test::test(100);
 }
 
