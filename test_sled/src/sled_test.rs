@@ -115,6 +115,8 @@ pub fn test(count: u32) -> Result<(), failure::Error> {
     
     // Create a directory inside of `std::env::temp_dir()`.
     let dir = tempdir()?;
+    let s= dir.path().to_str().expect("get folder path");
+    println!("dir={}", s);
     
     let file_path = dir.path().join("my-temporary-note.txt");
     let mut file = File::create(&file_path)?;
