@@ -3,7 +3,12 @@ use jsonrpc_http_server::*;
 
 use jsonrpc_core::Result;
 use jsonrpc_derive::rpc;
-
+use serde::{Serialize, Deserialize};
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct My {
+    price: u32,
+    name: String,
+}
 /*
 {
 	"method": "get_number",
@@ -16,6 +21,9 @@ use jsonrpc_derive::rpc;
 pub trait AppInterface: Send + Sync {
     #[rpc(name = "get_number")]
     fn get_number(&self, name: String) -> Result<String>;
+
+    #[rpc(name = "get_fruit")]
+    fn get_fruit(&self, my: My) -> Result<String>;
 }
 
 pub struct App {}
@@ -23,6 +31,9 @@ pub struct App {}
 impl AppInterface for App {
     fn get_number(&self, name: String) -> Result<String> {
         Ok(format!("apple={}", name))
+    }
+    fn get_fruit(&self, my: My) -> Result<String> {
+        Ok(format!("{}={}",my.name, my.price))
     }
 }
 
