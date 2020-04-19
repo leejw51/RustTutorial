@@ -1,4 +1,4 @@
-trait Food {
+trait Food: Send + Sync {
     fn eat(&self);
 }
 
