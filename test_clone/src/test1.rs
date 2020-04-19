@@ -41,7 +41,7 @@ impl Store {
     }
 }
 
-fn main() {
+pub fn main() {
     let mut store = Store::default();
     store.foods.push(Box::new(Apple { price: 2 }));
     store.foods.push(Box::new(Udon { price: 3 }));
