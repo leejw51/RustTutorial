@@ -1,3 +1,6 @@
+mod test1;
+mod test2;
+
 trait DiskInterface {
     fn boot(&self);
 }
