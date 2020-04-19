@@ -23,7 +23,7 @@ impl Udon {}
 
 impl Food for Udon {
     fn eat(&self) {
-        println!("eat Udon {}", self.price);
+        println!("eat udon {}", self.price);
     }
 }
 
