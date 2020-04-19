@@ -27,7 +27,7 @@ impl Food for Udon {
     }
 }
 
-type MyFood = Box<Food>;
+type MyFood = Box<dyn Food>;
 #[derive(Default)]
 struct Store {
     pub foods: Vec<MyFood>,
@@ -41,6 +41,7 @@ impl Store {
     }
 }
 
+#[allow(dead_code)]
 pub fn main() {
     let mut store = Store::default();
     store.foods.push(Box::new(Apple { price: 2 }));

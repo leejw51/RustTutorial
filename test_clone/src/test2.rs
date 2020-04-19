@@ -44,13 +44,15 @@ where
 }
 
 type MyClient2 = Client2<Disk, Websocket, Builder>;
+
+#[allow(dead_code)]
 fn test1() {
-    let client = Client {
+    let _client = Client {
         disk: Box::new(Disk {}),
         socket: Box::new(Websocket {}),
         builder: Vec::<Builder>::new(),
     };
-    let client = Client2 {
+    let _client = Client2 {
         disk: Disk {},
         socket: Websocket {},
         builder: Builder {},
@@ -59,10 +61,11 @@ fn test1() {
 
 #[derive(Default)]
 struct Program {
-    client: MyClient2,
+    _client: MyClient2,
 }
 
+#[allow(dead_code)]
 pub fn main() {
     println!("OK");
-    let p = Program::default();
+    let _p = Program::default();
 }
