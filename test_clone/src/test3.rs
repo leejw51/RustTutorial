@@ -1,27 +1,27 @@
-trait DiskInterface: Sync + Sync + Clone {
+pub trait DiskInterface: Sync + Sync + Clone {
     fn boot(&self);
 }
-#[derive(Default, Clone)]
-struct Disk {}
+#[derive(Default, Clone,Debug)]
+pub struct Disk {}
 impl DiskInterface for Disk {
     fn boot(&self) {
         println!("booting disk");
     }
 }
 
-trait WebsocketInterface: Sync + Send + Clone {}
+pub trait WebsocketInterface: Sync + Send + Clone {}
 
-#[derive(Default, Clone)]
-struct Websocket {}
+#[derive(Default, Clone,Debug)]
+pub struct Websocket {}
 impl WebsocketInterface for Websocket {}
 
-trait BuilderInterface: Sync + Send + Clone {}
-#[derive(Default, Clone)]
-struct Builder {}
+pub trait BuilderInterface: Sync + Send + Clone {}
+#[derive(Default, Clone,Debug)]
+pub struct Builder {}
 impl BuilderInterface for Builder {}
 
-#[derive(Default)]
-struct Client<D, W, B>
+#[derive(Default,Debug)]
+pub struct Client<D, W, B>
 where
     D: DiskInterface,
     W: WebsocketInterface,
@@ -32,8 +32,8 @@ where
     pub builder: Box<B>,
 }
 
-#[derive(Default)]
-struct Client2<D, W, B>
+#[derive(Default,Debug)]
+pub struct Client2<D, W, B>
 where
     D: DiskInterface,
     W: WebsocketInterface,
@@ -45,10 +45,10 @@ where
     pub client: Client<D, W, B>,
 }
 
-type MyClient2 = Client2<Disk, Websocket, Builder>;
+pub type MyClient2 = Client2<Disk, Websocket, Builder>;
 
-#[derive(Default)]
-struct Program {
+#[derive(Default,Debug)]
+pub struct Program {
     client2: MyClient2,
 }
 
@@ -70,14 +70,14 @@ impl Program {
     // add code here
 }
 
-#[derive(Default)]
-struct Program2<D, W, B>
+#[derive(Default,Debug)]
+pub struct Program2<D, W, B>
 where
     D: DiskInterface,
     W: WebsocketInterface,
     B: BuilderInterface,
 {
-    client2: Client2<D, W, B>,
+    pub client2: Client2<D, W, B>,
 }
 
 impl<D, W, B> Program2<D, W, B>
