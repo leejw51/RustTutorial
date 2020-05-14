@@ -1,4 +1,4 @@
-all: go_language 
+all: c_language 
 
 
 c_language:
