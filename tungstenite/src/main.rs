@@ -14,9 +14,9 @@ use std::env;
 
 use futures_util::{future, pin_mut, StreamExt};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
+use tokio_tungstenite::tungstenite::protocol::frame::CloseFrame;
 use tokio_tungstenite::{connect_async, tungstenite::protocol::Message};
-
-
 #[tokio::main]
 async fn main() {
     let connect_addr = env::args()
@@ -25,13 +25,18 @@ async fn main() {
 
     let url = url::Url::parse(&connect_addr).unwrap();
 
-    let (stdin_tx, stdin_rx) = futures_channel::mpsc::unbounded();
-    tokio::spawn(read_stdin(stdin_tx));
+    //  let (stdin_tx, stdin_rx) = futures_channel::mpsc::unbounded();
+    // tokio::spawn(read_stdin(stdin_tx));
 
-    let (ws_stream, _) = connect_async(url).await.expect("Failed to connect");
+    let (mut ws_stream, _) = connect_async(url).await.expect("Failed to connect");
     println!("WebSocket handshake has been successfully completed");
+    let closemsg = CloseFrame {
+        code: CloseCode::Normal,
+        reason: std::borrow::Cow::Borrowed("OK"),
+    };
+    ws_stream.close(Some(closemsg)).await;
 
-    let (write, read) = ws_stream.split();
+    /*let (write, read) = ws_stream.split();
 
     let stdin_to_ws = stdin_rx.map(Ok).forward(write);
     let ws_to_stdout = {
@@ -39,10 +44,10 @@ async fn main() {
             let data = message.unwrap().into_data();
             tokio::io::stdout().write_all(&data).await.unwrap();
         })
-    };
+    };*/
 
-    pin_mut!(stdin_to_ws, ws_to_stdout);
-    future::select(stdin_to_ws, ws_to_stdout).await;
+    //  pin_mut!(stdin_to_ws, ws_to_stdout);
+    // future::select(stdin_to_ws, ws_to_stdout).await;
 }
 
 // Our helper method which will read data from stdin and send it along the
