@@ -1,0 +1,16 @@
+[package]
+name = "tungstenite"
+version = "0.1.0"
+authors = ["lee jongwhan <leejw51@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tokio={version="0.2.21", features=["full"]}
+tokio-tungstenite={versio="0.10.1"}
+futures-channel = "0.3"
+url = "2.0.0"
+env_logger = "0.7"
+futures-util = { version = "0.3", default-features = false, features = ["async-await", "sink", "std"] }
+pin-project = "0.4"
