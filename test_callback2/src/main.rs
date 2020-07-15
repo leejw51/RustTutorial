@@ -19,13 +19,12 @@ trait Person {
     
   }
   
-trait Storage
-{
+trait Storage{
     fn write(&self);
 
 }
 
-
+#[derive(Clone)]
 struct DB
 {
 
@@ -41,9 +40,9 @@ impl Storage for DB
 
 
 
-
+#[derive(Clone)]
 struct Note {
-    storage:  Option<Box<dyn Storage>>,
+    storage:  Option<Arc<Mutex<dyn Storage>>>,
 
 }
 fn main()
@@ -51,6 +50,6 @@ fn main()
     println!("storage");
     let db=DB{};
   
-     let mut note = Note{storage:Some(Box::new(db))};
-    note.storage.map(|s| s.write());
+     let mut note = Note{storage:Some(Arc::new(Mutex::new(db)))};
+    note.storage.map(|s| s.lock().unwrap().write());
 }
