@@ -1,24 +1,40 @@
-fn check(number: i32, callback: Box< dyn Fn(i32) -> bool>) {
-    for i in 0..number {
-        if callback(i) {
-            println!("{}", i);
-        }
+use std::sync::{Mutex,Arc};
+
+#[derive(Default,Debug,Clone)]
+struct Storage
+{
+
+}
+
+#[derive(Default,Debug,Clone)]
+struct DB
+{
+
+}
+
+impl Storage 
+{
+    fn write(&self)
+    {
+        println!("write");
     }
 }
 
-
-#[derive(Debug,Clone)]
-struct Test {
-    value: i32,
+fn process(storage:& Storage)
+{
+    storage.write();
 }
-fn main() {
-  
-    let mut test=Test{ value:0};
-   
-    check(10,  Box::new(move |a:i32| 
-        { 
-            let b=test.value;
-         
-            a % 2 == 0
-        }));
+
+#[derive(Debug,Default,Clone)]
+struct Note {
+    storage:  Option<Storage>,
+
+}
+fn main()
+{
+    println!("storage");
+    let db=DB::default();
+    let db2= db.clone();
+    let mut note = Note{storage: Some(Storage::default())};
+    note.storage.map(|s| s.write());
 }
