@@ -1,6 +1,14 @@
+#[derive(Debug, Default)]
+struct Note {
+    info: String,
+}
 
-
-pub fn main()
-{
-    println!("callback11");
+impl Note {
+    pub fn run(&mut self) {
+        println!("run");
+    }
+}
+pub fn main() {
+    let mut note = Note::default();
+    note.run();
 }
