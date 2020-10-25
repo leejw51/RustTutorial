@@ -1,0 +1,24 @@
+[package]
+name = "test_grpc"
+version = "0.1.0"
+authors = ["jongwhan <leejw51@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+prost = "0.6.1"
+tonic = {version="0.2.0",features = ["tls"]}
+tokio = {version="0.2.18",features = ["stream", "macros"]}
+futures = "0.3"
+
+[build-dependencies]
+tonic-build = "0.2.0"
+
+[[bin]]
+name = "grpcserver"
+path = "src/server.rs"
+
+[[bin]]
+name = "grpcclient"
+path = "src/client.rs"
