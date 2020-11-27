@@ -1,6 +1,6 @@
 use sled::{Config, Result};
 
-pub fn 	basic() -> Result<()> {
+pub fn basic() -> Result<()> {
     let config = Config::new().temporary(true);
 
     let db = config.open()?;
@@ -16,7 +16,10 @@ pub fn 	basic() -> Result<()> {
     // compare and swap
     match db.compare_and_swap(k.clone(), Some(&v1), Some(v2.clone()))? {
         Ok(()) => println!("it worked!"),
-        Err(sled::CompareAndSwapError { current: cur, proposed: _ }) => {
+        Err(sled::CompareAndSwapError {
+            current: cur,
+            proposed: _,
+        }) => {
             println!("the actual current value is {:?}", cur)
         }
     }

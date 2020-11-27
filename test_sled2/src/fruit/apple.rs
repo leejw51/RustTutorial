@@ -1,4 +1,3 @@
-
 pub fn main() {
- println!("i'm apple")
+    println!("i'm apple")
 }
