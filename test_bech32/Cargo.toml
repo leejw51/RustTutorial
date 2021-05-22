@@ -9,4 +9,9 @@ edition = "2018"
 bech32 = "0.8.0"
 tiny-hderive = "0.3.0"
 tiny-bip39 = "0.8.0"
-ethsign = ""
+ethsign = "0.8.0"
+failure = ""
+bitcoin = { version = "=0.26", features = ["use-serde"] }
+hdpath = { version = "0.6.0", features = ["with-bitcoin"] }
+ripemd160 = "0.9.1"
+sha2 = "0.9.3"
