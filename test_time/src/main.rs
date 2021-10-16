@@ -3,8 +3,8 @@ use std::thread::sleep;
 use chrono::prelude::*;
 use chrono::offset::LocalResult;
 
-fn main() {
-   let now = chrono::Utc::now();
+fn test() {
+    let now = chrono::Utc::now();
    
    let a = now.timestamp_nanos();
    let a1= a/(1_000_000_000);
@@ -14,5 +14,17 @@ fn main() {
    println!("now {:?}", a);
    println!("now {:?} {:?}", b, now);
    assert!(b==now);
+
+}
+fn main() {
+    let now = chrono::Utc::now();
+    let a= now. to_rfc3339();
+    let b = DateTime::parse_from_rfc3339(&a).unwrap().to_rfc3339();
+    let c = DateTime::parse_from_rfc3339(&a).unwrap().to_rfc2822();
+    println!("now ={}", now);
+    println!("a={}", a);
+    println!("b={}", b);
+    println!("b={}", c);
+
    
 }
