@@ -20,3 +20,9 @@ test_c/apple.o
 test_c_binding/hi
 test_c_binding/hi
 
+test_debugging/target/*
+
+.gitignore
+test_debugging2/target/*
+test_time/target/*
+test_serialization/target/*
