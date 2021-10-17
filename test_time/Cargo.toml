@@ -7,3 +7,6 @@ edition = "2018"
 
 [dependencies]
 chrono = "0.4.19"
+hex="0.4.3"
+uint = "0.9.1"
+failure = "0.1.8"

@@ -1,9 +1,21 @@
+
+mod memo;
 use std::time::{Duration, SystemTime};
 use std::thread::sleep;
 use chrono::prelude::*;
 use chrono::offset::LocalResult;
 
-fn test() {
+#[macro_use] extern crate failure;
+use uint::construct_uint;
+construct_uint! {
+	pub struct U256(4);
+}
+
+#[macro_use] extern crate uint;
+
+
+
+fn test() -> Result<(), failure::Error> {
     let now = chrono::Utc::now();
    
    let a = now.timestamp_nanos();
@@ -14,17 +26,12 @@ fn test() {
    println!("now {:?}", a);
    println!("now {:?} {:?}", b, now);
    assert!(b==now);
+   Ok(())
 
 }
-fn main() {
-    let now = chrono::Utc::now();
-    let a= now. to_rfc3339();
-    let b = DateTime::parse_from_rfc3339(&a).unwrap().to_rfc3339();
-    let c = DateTime::parse_from_rfc3339(&a).unwrap().to_rfc2822();
-    println!("now ={}", now);
-    println!("a={}", a);
-    println!("b={}", b);
-    println!("b={}", c);
 
-   
+
+
+fn main() {   
+    memo::test3();
 }
