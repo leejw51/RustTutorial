@@ -6,7 +6,6 @@ async fn test() -> Result<(), failure::Error> {
 
     let user = std::env::var("MONGOUSER")?;
     let pw = std::env::var("MONGOPW")?;
-    println!("user {}  pw {}", user, pw);
 
     let server = "127.0.0.1";
     let port = 27017;
