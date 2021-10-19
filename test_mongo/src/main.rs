@@ -1,6 +1,18 @@
 use bincode::Error;
-
+use futures::stream::TryStreamExt;
+use mongodb::bson::{doc, Document};
+use mongodb::options::FindOptions;
 use mongodb::{options::ClientOptions, Client};
+#[macro_use]
+extern crate failure;
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Serialize, Deserialize)]
+struct Book {
+    title: String,
+    author: String,
+}
+
 async fn test() -> Result<(), failure::Error> {
     println!("test");
 
@@ -23,6 +35,35 @@ async fn test() -> Result<(), failure::Error> {
         println!("db={}", db_name);
     }
 
+    // Get a handle to a database.
+    let db = client.database("my");
+
+    // List the names of the collections in that database.
+    for collection_name in db.list_collection_names(None).await? {
+        println!("{}", collection_name);
+    }
+    let collection = db.collection::<Document>("my");
+
+    let docs = vec![
+        doc! { "title": "1984", "author": "George Orwell" },
+        doc! { "title": "Animal Farm", "author": "George Orwell" },
+        doc! { "title": "The Great Gatsby", "author": "F. Scott Fitzgerald" },
+    ];
+
+    // Insert some documents into the "mydb.books" collection.
+    collection.insert_many(docs, None).await?;
+
+    let filter = doc! { "author": "George Orwell" };
+    let find_options = FindOptions::builder().sort(doc! { "title": 1 }).build();
+    let mut cursor = collection.find(filter, find_options).await?;
+
+    // Iterate over the results of the cursor.
+    while let Some(book) = cursor.try_next().await? {
+        println!(
+            "title: {}",
+            book.get("title").ok_or(format_err!("title error"))?
+        );
+    }
     return Ok(());
 }
 
