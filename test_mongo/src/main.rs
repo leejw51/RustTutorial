@@ -1,7 +1,7 @@
 use bincode::Error;
 use futures::stream::TryStreamExt;
 use mongodb::bson::{doc, Document};
-use mongodb::options::FindOptions;
+use mongodb::options::{CountOptions, FindOptions};
 use mongodb::{options::ClientOptions, Client};
 #[macro_use]
 extern crate failure;
@@ -19,8 +19,8 @@ async fn test() -> Result<(), failure::Error> {
     let user = std::env::var("MONGOUSER")?;
     let pw = std::env::var("MONGOPW")?;
 
-    let server = "127.0.0.1";
-    let port = 27017;
+    let server = std::env::var("MONGOIP")?;
+    let port = std::env::var("MONGOPORT")?.parse::<i32>()?;
     let m = format!("mongodb://{}:{}@{}:{}", user, pw, server, port);
     let mut client_options = ClientOptions::parse(m).await?;
 
@@ -36,7 +36,8 @@ async fn test() -> Result<(), failure::Error> {
     }
 
     // Get a handle to a database.
-    let db = client.database("my");
+    let dbname = std::env::var("MONGODB")?;
+    let db = client.database(&dbname);
 
     // List the names of the collections in that database.
     for collection_name in db.list_collection_names(None).await? {
@@ -58,7 +59,11 @@ async fn test() -> Result<(), failure::Error> {
         .sort(doc! { "title": 1 })
         .limit(5)
         .build();
-    let mut cursor = collection.find(filter, find_options).await?;
+    let mut cursor = collection.find(filter.clone(), find_options).await?;
+
+    let count_options = CountOptions::builder().build();
+    let number = collection.count_documents(filter, count_options).await?;
+    println!("{} rows", number);
 
     // Iterate over the results of the cursor.
     while let Some(book) = cursor.try_next().await? {
