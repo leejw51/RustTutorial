@@ -16,13 +16,9 @@ struct Book {
 async fn test() -> Result<(), failure::Error> {
     println!("test");
 
-    let user = std::env::var("MONGOUSER")?;
-    let pw = std::env::var("MONGOPW")?;
-
-    let server = std::env::var("MONGOIP")?;
-    let port = std::env::var("MONGOPORT")?.parse::<i32>()?;
-    let m = format!("mongodb://{}:{}@{}:{}", user, pw, server, port);
-    let mut client_options = ClientOptions::parse(m).await?;
+    let uri = std::env::var("MONGOURI")?;
+    println!("uri={}", uri);
+    let mut client_options = ClientOptions::parse(uri).await?;
 
     // Manually set an option.
     client_options.app_name = Some("My App".to_string());
@@ -36,7 +32,7 @@ async fn test() -> Result<(), failure::Error> {
     }
 
     // Get a handle to a database.
-    let dbname = std::env::var("MONGODB")?;
+    let dbname = "my";
     let db = client.database(&dbname);
 
     // List the names of the collections in that database.
