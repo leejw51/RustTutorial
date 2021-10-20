@@ -54,7 +54,10 @@ async fn test() -> Result<(), failure::Error> {
     collection.insert_many(docs, None).await?;
 
     let filter = doc! { "author": "George Orwell" };
-    let find_options = FindOptions::builder().sort(doc! { "title": 1 }).build();
+    let find_options = FindOptions::builder()
+        .sort(doc! { "title": 1 })
+        .limit(5)
+        .build();
     let mut cursor = collection.find(filter, find_options).await?;
 
     // Iterate over the results of the cursor.
