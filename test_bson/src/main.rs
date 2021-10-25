@@ -1,5 +1,6 @@
 use bson::{bson, doc, oid, Bson, DateTime, Document};
 use serde::{Deserialize, Serialize};
+mod binary;
 #[derive(Serialize, Deserialize)]
 struct Person {
     name: String,
@@ -71,7 +72,7 @@ fn test2() {
     println!("{}", hex::encode(&b));
 }
 
-fn main() {
+fn test3() {
     let doc = doc! {
         "bool": true,
         "fruits":vec![Bson::Int32(0x00bbffff);10]
@@ -82,4 +83,8 @@ fn main() {
     let b = bson::to_vec(&doc).unwrap();
     println!("{}", a);
     println!("{}", hex::encode(&b));
+}
+
+fn main() {
+    crate::binary::test_binary_bson();
 }
