@@ -1,0 +1,14 @@
+-----------------------------------------------
+Fruit { price: 10, name: "Apple" }
+change..
+Fruit { price: 10, name: "Banana" }
+-----------------------------------------------
+RefCell { value: Fruit { price: 10, name: "Apple" } }
+change..
+a RefCell { value: Fruit { price: 10, name: "Banana" } }
+c RefCell { value: Fruit { price: 10, name: "Banana" } }
+-----------------------------------------------
+Mutex { data: Fruit { price: 10, name: "Apple" }, poisoned: false, .. }
+change..
+a Mutex { data: Fruit { price: 10, name: "Banana" }, poisoned: false, .. }
+c Mutex { data: Fruit { price: 10, name: "Banana" }, poisoned: false, .. }
