@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 tokio = { version = "1.15.0", features = ["full"] }
 crossbeam="0.8.1"
+anyhow="1"
