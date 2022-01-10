@@ -19,10 +19,11 @@ fn sync_get_name(handle: Handle) -> anyhow::Result<String> {
     Ok(rx.recv()??)
 }
 
-#[tokio::main]
- async fn main() {
-    let res = tokio::task::spawn_blocking(|| {
-        let score = sync_get_name(tokio::runtime::Handle::current()).unwrap();
+
+  fn main() {
+    let mut rt = tokio::runtime::Runtime::new().unwrap();
+    let res = rt.block_on(async {
+        let score = sync_get_name(rt.handle().clone()).unwrap();
         println!("score: {}", score);
-    }).await.unwrap();
+    });
 }
