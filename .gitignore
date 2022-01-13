@@ -27,3 +27,5 @@ test_debugging2/target/*
 test_time/target/*
 test_serialization/target/*
 test_sqlite/target/*
+
+.vscode
