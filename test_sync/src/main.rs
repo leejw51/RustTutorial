@@ -25,5 +25,8 @@ fn sync_get_name(handle: Handle) -> anyhow::Result<String> {
     let res = rt.block_on(async {
         let score = sync_get_name(rt.handle().clone()).unwrap();
         println!("score: {}", score);
+        score
     });
+    // get score
+    println!("score: {}", res);
 }
